@@ -163,5 +163,6 @@ int			print_in_chek_absolute_no_file(char **args);
 int			print_in_chek_absolute_denied(char **args);
 int			print_in_chek_absolute_dir(char **args);
 int			get_j_in_getcmd(char *str);
+int	pipe_check(char *str);
 
 #endif

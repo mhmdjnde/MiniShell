@@ -34,6 +34,7 @@ SRCS		=	srcs/count_args.c \
 				srcs/utils3.c\
 				srcs/utils4.c\
 				srcs/utils5.c\
+				srcs/pipe.c\
 
 OBJS		=	$(SRCS:.c=.o)
 

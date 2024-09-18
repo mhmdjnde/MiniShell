@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/27 19:07:27 by mjoundi           #+#    #+#             */
-/*   Updated: 2024/09/18 15:24:30 by marvin           ###   ########.fr       */
+/*   Updated: 2024/09/18 22:13:09 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -230,9 +230,20 @@ int	main_main(t_maintools *tools)
 	return (1);
 }
 
-// void	run_cmd(char **env)
-// {
-// }
+int	run_one_cmd(t_maintools *tools)
+{
+	int	test;
+
+	if (check_before_run(tools) == 0)
+		return (1);
+	test = main_main(tools);
+	if (test == -1)
+		return (2);
+	else if (test == 0)
+		return (1);
+	clean(tools);
+	return (0);
+}
 
 int	main(int ac, char **av, char **env)
 {
@@ -249,14 +260,18 @@ int	main(int ac, char **av, char **env)
 			break ;
 		else if (test == 0)
 			continue ;
-		if (check_before_run(&tools) == 0)
-			continue ;
-		test = main_main(&tools);
-		if (test == -1)
-			break ;
-		else if (test == 0)
-			continue ;
-		clean(&tools);
+		if (pipe_check(tools.str) == 0)
+		{
+			test = run_one_cmd(&tools);
+			if (test == 1)
+				continue ;
+			else if (test == 2)
+				break ;
+		}
+		else
+		{
+			printf("pipe is availble\n");
+		}
 	}
 	freee(&tools);
 	return (0);
