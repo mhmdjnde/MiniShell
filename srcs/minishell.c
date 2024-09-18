@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mjoundi <mjoundi@student.42.fr>            +#+  +:+       +#+        */
+/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/27 19:07:27 by mjoundi           #+#    #+#             */
-/*   Updated: 2024/09/16 18:04:17 by mjoundi          ###   ########.fr       */
+/*   Updated: 2024/09/18 03:12:28 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@
 // 	// free_all();
 // 	exit(1);
 // }
-void	ini_tools_1(t_maintools *tools, char **env, int ac, char **av)
+void	ini_tools_1(t_maintools *tools, char **env)
 {
 	tools->out = dup(STDOUT_FILENO);
 	tools->in = dup(STDIN_FILENO);
@@ -27,8 +27,6 @@ void	ini_tools_1(t_maintools *tools, char **env, int ac, char **av)
 	tools->en = env_copy(env);
 	tools->ex = env_copy(env);
 	exp_q(tools->ex);
-	(void)ac;
-	(void)av;
 	sort_env(tools->ex, args_len(tools->ex));
 	inc_shlvl(&tools->ex, &tools->en);
 }
@@ -232,12 +230,12 @@ int	main_main(t_maintools *tools)
 	return (1);
 }
 
-int	main(int ac, char **av, char **env)
+void	run_cmd(char **env)
 {
 	t_maintools	tools;
 	int			test;
 
-	ini_tools_1(&tools, env, ac, av);
+	ini_tools_1(&tools, env);
 	while (1)
 	{
 		test = ini_loop(&tools);
@@ -255,5 +253,12 @@ int	main(int ac, char **av, char **env)
 		clean(&tools);
 	}
 	freee(&tools);
+}
+
+int	main(int ac, char **av, char **env)
+{
+	(void)ac;
+	(void)av;
+	run_cmd(env);
 	return (0);
 }

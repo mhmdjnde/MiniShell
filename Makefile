@@ -44,11 +44,11 @@ $(NAME)		:	$(OBJS) $(HEADER)
 
 clean		:
 				rm -rf $(OBJS)
-				make clean -C ./libft
+				make clean
 
 fclean		:	clean
 				rm $(NAME)
-				make fclean -C ./libft
+				make fclean
 
 re			:	fclean all
 
