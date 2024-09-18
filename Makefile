@@ -44,11 +44,9 @@ $(NAME)		:	$(OBJS) $(HEADER)
 
 clean		:
 				rm -rf $(OBJS)
-				make clean
 
 fclean		:	clean
-				rm $(NAME)
-				make fclean
+				rm -rf $(NAME)
 
 re			:	fclean all
 

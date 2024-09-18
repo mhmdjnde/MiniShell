@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   exec_other.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mjoundi <mjoundi@student.42.fr>            +#+  +:+       +#+        */
+/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/31 17:20:33 by mjoundi           #+#    #+#             */
-/*   Updated: 2024/09/17 15:20:55 by mjoundi          ###   ########.fr       */
+/*   Updated: 2024/09/18 15:48:38 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,28 @@ int	get_j_in_getcmd(char *str)
 	return (j);
 }
 
+void	q_cmd(char *str, int *i)
+{
+	if (str[*i] == '"')
+	{
+		(*i)++;
+		while (str[*i] != '"' && str[*i] != '\0')
+			(*i)++;
+		if (str[*i] == '"')
+			(*i)++;
+	}
+	else if (str[*i] == '\'')
+	{
+		(*i)++;
+		while (str[*i] != '\'' && str[*i] != '\0')
+			(*i)++;
+		if (str[*i] == '\'')
+			(*i)++;
+	}
+	else
+		(*i)++;
+}
+
 char	*get_cmd(char *str)
 {
 	int		i;
@@ -30,22 +52,7 @@ char	*get_cmd(char *str)
 	i = get_j_in_getcmd(str);
 	while (str[i] != '\0' && str[i] != ' ')
 	{
-		if (str[i] == '"' && i++)
-		{
-			while (str[i] != '"' && str[i] != '\0')
-				i++;
-			if (str[i] == '"')
-				i++;
-		}
-		else if (str[i] == '\'' && i++)
-		{
-			while (str[i] != '\'' && str[i] != '\0')
-				i++;
-			if (str[i] == '\'')
-				i++;
-		}
-		else
-			i++;
+		q_cmd(str, &i);
 	}
 	temp = ft_substr(str, get_j_in_getcmd(str), i);
 	return (temp);
@@ -156,9 +163,7 @@ int	check_ve(char **args, char **env)
 
 void	print_in_checkve(char **args)
 {
-	write(1, "Error: ", 7);
-	without_quotes(args[0], 0);
-	write(1, " Command not found.\n", 20);
+	printf("error: %s command not found\n",  args[0]);
 }
 
 void	init_vars(t_check_ve *vars, char **args, char **env)

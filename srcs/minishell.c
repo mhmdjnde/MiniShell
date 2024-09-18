@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/27 19:07:27 by mjoundi           #+#    #+#             */
-/*   Updated: 2024/09/18 03:12:28 by marvin           ###   ########.fr       */
+/*   Updated: 2024/09/18 15:24:30 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -230,11 +230,17 @@ int	main_main(t_maintools *tools)
 	return (1);
 }
 
-void	run_cmd(char **env)
+// void	run_cmd(char **env)
+// {
+// }
+
+int	main(int ac, char **av, char **env)
 {
 	t_maintools	tools;
 	int			test;
 
+	(void)ac;
+	(void)av;
 	ini_tools_1(&tools, env);
 	while (1)
 	{
@@ -253,12 +259,5 @@ void	run_cmd(char **env)
 		clean(&tools);
 	}
 	freee(&tools);
-}
-
-int	main(int ac, char **av, char **env)
-{
-	(void)ac;
-	(void)av;
-	run_cmd(env);
 	return (0);
 }
