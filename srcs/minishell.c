@@ -3,14 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
+/*   By: mjoundi <mjoundi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/27 19:07:27 by mjoundi           #+#    #+#             */
-/*   Updated: 2024/09/18 22:13:09 by marvin           ###   ########.fr       */
+/*   Updated: 2024/09/19 20:16:26 by mjoundi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
+
+int exit_status = 0;
 
 // if (tools->in == -1 || tools->out == -1)
 // {
@@ -88,6 +90,7 @@ void	envv(char **env)
 		printf("%s\n", env[i]);
 		i++;
 	}
+	exit_status = 0;
 }
 
 void	echo(t_maintools *tools)
@@ -98,12 +101,16 @@ void	echo(t_maintools *tools)
 	tools->strs = parse_args(tools->str, "echo");
 	echo_args_check(tools->strs);
 	free_args(&tools->strs);
+	exit_status = 0;
 }
 
 void	export(t_maintools *tools)
 {
 	if (count_args(tools->str, "export") == 0)
+	{
 		print_exp(tools->ex);
+		exit_status = 0;
+	}
 	else
 	{
 		tools->str = rm_dl(tools->str);
@@ -203,12 +210,72 @@ void	freee(t_maintools *tools)
 		free(tools->cd);
 }
 
+int	is_num(char *str)
+{
+	int	i;
+
+	i = 0;
+	if (str[i] == '-' || str[i] == '+')
+		i++;
+	while(str[i] != '\0')
+	{
+		if (!(str[i] >= '0' && str[i] <= '9'))
+			return (0);
+		i++;
+	}
+	return (1);
+}
+
+void	ex_st(char **args)
+{
+	long long	l;
+	char		*temp;
+
+	if (args_len(args) == 2)
+	{
+		temp = without_quotes_ret(args[1], 0);
+		if (!is_num(temp))
+			exit_status = 2;
+		else
+		{
+			l = ft_atol(args[1]);
+			if (l < 0 && l >= -9223372036854775807LL - 1)
+				l += 256 * ((-l / 256) + 1);
+			if (l <= 9223372036854775807LL && l >= -9223372036854775807LL - 1)
+				exit_status = l % 256;
+			else
+			{
+				printf("bash: exit: %s: numeric argument required", args[1]);
+				exit_status = 2;
+			}
+		}
+		free(temp);
+	}
+	else if (args_len(args) > 2)
+	{
+		temp = without_quotes_ret(args[1], 0);
+		if (!is_num(temp))
+			exit_status = 2;
+		else
+		{
+			l = ft_atol(args[1]);
+			if (l <= 9223372036854775807LL && l >= -9223372036854775807LL - 1)
+				exit_status = 1;
+			else
+				exit_status = 2;
+		}
+		free(temp);
+	}
+}
+
 int	main_main(t_maintools *tools)
 {
 	if (parse_cmd(tools->str, "exit") >= 0)
 	{
 		exitt(tools);
-		return (-1);
+		ex_st(tools->strs);
+		printf("%d\n\n", exit_status);
+		return (0);
 	}
 	else if (parse_cmd(tools->str, "echo") >= 0)
 		echo(tools);
@@ -273,6 +340,7 @@ int	main(int ac, char **av, char **env)
 			printf("pipe is availble\n");
 		}
 	}
+	printf("exit\n");
 	freee(&tools);
 	return (0);
 }

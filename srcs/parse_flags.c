@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parse_flags.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
+/*   By: mjoundi <mjoundi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/27 19:19:33 by mjoundi           #+#    #+#             */
-/*   Updated: 2024/09/19 03:49:47 by marvin           ###   ########.fr       */
+/*   Updated: 2024/09/19 13:05:26 by mjoundi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,9 +39,7 @@ int	parse_flags(char *str, char *flag)
 				return (1);
 		}
 		else if (str[i] != ' ' && quote == '\0')
-		{
 			return (-1);
-		}
 		i++;
 	}
 	if (flag[j] == '\0')

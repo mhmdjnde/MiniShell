@@ -27,6 +27,8 @@
 # include <sys/types.h>
 # include <sys/stat.h>
 
+extern int exit_status;
+
 typedef struct s_redtools
 {
 	char	*file;
@@ -163,6 +165,9 @@ int			print_in_chek_absolute_no_file(char **args);
 int			print_in_chek_absolute_denied(char **args);
 int			print_in_chek_absolute_dir(char **args);
 int			get_j_in_getcmd(char *str);
-int	pipe_check(char *str);
-
+//  exec_other functions end 
+int			pipe_check(char *str);
+int		run_one_cmd(t_maintools *tools);
+long long	ft_atol(const char *nptr);
+void	fill_status(char **args);
 #endif

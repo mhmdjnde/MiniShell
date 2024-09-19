@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   pipe.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
+/*   By: mjoundi <mjoundi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/18 15:22:05 by marvin            #+#    #+#             */
-/*   Updated: 2024/09/18 15:22:05 by marvin           ###   ########.fr       */
+/*   Updated: 2024/09/19 13:48:51 by mjoundi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -114,6 +114,34 @@ char	**parse_pipe(char *str)
 	cmds[k] = ft_substr(str, j, i - j);
 	cmds[k + 1] = NULL;
 	return (cmds);
+}
+
+void	run_pipe(t_maintools *tools)
+{
+	int	fd[2];
+
+	if (pipe(fd) == -1)	
+		return;
+	dup2(fd[1],STDOUT_FILENO);
+	run_one_cmd(tools);
+	close(fd[1]);
+	close(fd[0]);
+}
+
+void 	run_pipes(t_maintools *tools)
+{
+	int		i;
+	char	**cmds;
+
+	i = 0;
+	cmds = parse_pipe(tools->str);
+	free(tools->str);
+	while (cmds[i] != NULL)
+	{
+		tools->str = cmds[i];
+		run_pipe(tools);
+		i++;
+	}
 }
 
 // int	main(void)

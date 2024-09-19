@@ -6,7 +6,7 @@
 /*   By: mjoundi <mjoundi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/05 17:28:20 by fdahouk           #+#    #+#             */
-/*   Updated: 2024/09/16 17:55:53 by mjoundi          ###   ########.fr       */
+/*   Updated: 2024/09/19 20:18:30 by mjoundi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,7 +115,18 @@ void	add_exp(char **args, char ***ex, char ***en)
 		free(args[i]);
 		args[i] = temp;
 		if (!exp_arg_check(args[i]))
-			printf("%s: not a valid identifier\n", args[i]);
+		{
+			if (args[i][0] == '-')
+			{
+				printf("%s: invalid option\n", args[i]);
+				exit_status = 2;
+			}
+			else
+			{
+				printf("%s: not a valid identifier\n", args[i]);
+				exit_status = 1;
+			}
+		}
 		else
 		{
 			if (check_equal(args[i]) == -1)
