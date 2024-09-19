@@ -21,7 +21,8 @@ int	is_ok(char c)
 int	is_ok2(char c)
 {
 	return ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
-		|| c == '_');
+		|| c == '_' || c == '=' || c == ':' || c == '+'
+		|| c == '/' || c == '-');
 }
 
 int	ft_strncmp(char *s1, char *s2, int n)

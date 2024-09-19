@@ -294,7 +294,7 @@ t_redtools	*red_after_cmd(char **str)
 	{
 		t = red_main_loop(&r, str);
 		if (t == 0)
-			return (free(r.tab), NULL);
+			return (free(r.tab), free(r.red), NULL);
 		else if (t == 1)
 			continue ;
 		else if (t == 2)

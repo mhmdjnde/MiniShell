@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   dollar.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mjoundi <mjoundi@student.42.fr>            +#+  +:+       +#+        */
+/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/27 18:52:36 by mjoundi           #+#    #+#             */
-/*   Updated: 2024/09/16 17:33:27 by mjoundi          ###   ########.fr       */
+/*   Updated: 2024/09/19 03:51:54 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,16 +16,18 @@ int	helper2(char *str, int *i, int *index)
 {
 	if (*i != 0 && str[*i - 1] == '\\')
 	{
-		(*i)++;
+		if (str[*i != '\0'])
+			(*i)++;
 		return (0);
 	}
 	index[0] = *i + 1;
-	(*i)++;
+	if (str[*i != '\0'])
+		(*i)++;
 	if (!(str[*i] >= 'a' && str[*i] <= 'z') && !(str[*i] >= 'A'
 			&& str[*i] <= 'Z'))
 	{
 		if (str[*i != '\0'])
-		(*i)++;
+			(*i)++;
 		return (0);
 	}
 	while (str[*i] != '\0' && is_ok(str[*i]))
