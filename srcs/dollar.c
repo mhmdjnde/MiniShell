@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   dollar.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mjoundi <mjoundi@student.42.fr>            +#+  +:+       +#+        */
+/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/27 18:52:36 by mjoundi           #+#    #+#             */
-/*   Updated: 2024/09/19 13:31:49 by mjoundi          ###   ########.fr       */
+/*   Updated: 2024/09/20 01:06:38 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,9 +62,8 @@ char	*dlr_qm(char *str, int *i)
 {
 	if (str[*i - 1] == '$')
 		return("$$");
-	if (str[*i - 1] == '$')
+	else
 		return("$?");
-	return (NULL);
 }
 
 char	*helper3(char *str, int *i, int *index)
@@ -109,7 +108,9 @@ char	*var_ret(char *str, int *i)
 	if (t == NULL)
 		return (NULL);
 	else if (ft_strcmp(t, "$$") == 0)
-		return ("1PID");
+		return ("dbldlr");
+	else if (ft_strcmp(t, "$?") == 0)
+		return  ("dlrqm");
 	if (index[0] == -1 || index[0] == index[1])
 		return (NULL);
 	temp = (char *)malloc((index[1] - index[0] + 1) * sizeof(char));
@@ -191,6 +192,21 @@ void	double_dlr(int *start, int *i, int *end, char **str)
 	free(env_value);
 }
 
+void	dollar_qm(int *start, int *i, int *end, char **str)
+{
+	char	*env_value;
+
+	env_value = ft_itoa(exit_status);
+	*start = *i - 2;
+	*end = *i;
+	edit_str(str, *start, *end, env_value);
+	if (env_value)
+		*i = *start + ft_strlen(env_value);
+	else
+		*i = *start;
+	free(env_value);
+}
+
 void	restart_i(int *i, char *env_value, int start)
 {
 	if (env_value)
@@ -213,8 +229,10 @@ void	var_in_env(char **str, char **env)
 		var_name = var_ret(*str, &i);
 		if (var_name)
 		{
-			if (ft_strcmp(var_name, "1PID") == 0)
+			if (ft_strcmp(var_name, "dbldlr") == 0)
 				double_dlr(&start, &i, &end, str);
+			else if (ft_strcmp(var_name, "dlrqm") == 0)
+				dollar_qm(&start, &i, &end, str);
 			else
 			{
 				env_value = env_search(var_name, env);

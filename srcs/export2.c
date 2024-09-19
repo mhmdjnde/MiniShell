@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   export2.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mjoundi <mjoundi@student.42.fr>            +#+  +:+       +#+        */
+/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/05 17:28:20 by fdahouk           #+#    #+#             */
-/*   Updated: 2024/09/19 20:18:30 by mjoundi          ###   ########.fr       */
+/*   Updated: 2024/09/20 01:02:44 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,12 +103,14 @@ void	func_add_exp(int i, char ***en, char **args, char ***ex)
 	}
 }
 
-void	add_exp(char **args, char ***ex, char ***en)
+void	add_exp(char **args, char ***ex, char ***en, int sf)
 {
 	int		i;
 	char	*temp;
+	int		f;
 
 	i = 1;
+	f = 0;
 	while (args[i] != NULL)
 	{
 		temp = without_quotes_ret(args[i], 0);
@@ -120,11 +122,13 @@ void	add_exp(char **args, char ***ex, char ***en)
 			{
 				printf("%s: invalid option\n", args[i]);
 				exit_status = 2;
+				f = 1;
 			}
 			else
 			{
 				printf("%s: not a valid identifier\n", args[i]);
 				exit_status = 1;
+				f = 1;
 			}
 		}
 		else
@@ -139,6 +143,8 @@ void	add_exp(char **args, char ***ex, char ***en)
 		}
 		i++;
 	}
+	if (f == 0 && sf == 0)
+		exit_status = 0;
 }
 
 void	edit_pwd(char ***ex, char ***en)
@@ -154,7 +160,7 @@ void	edit_pwd(char ***ex, char ***en)
 	ft_strcpy(args[1], "PWD=");
 	strncat(args[1], pwd, ft_strlen(pwd));
 	args[2] = NULL;
-	add_exp(args, ex, en);
+	add_exp(args, ex, en, 1);
 	free(pwd);
 	free_args(&args);
 }

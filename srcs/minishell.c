@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mjoundi <mjoundi@student.42.fr>            +#+  +:+       +#+        */
+/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/27 19:07:27 by mjoundi           #+#    #+#             */
-/*   Updated: 2024/09/19 20:16:26 by mjoundi          ###   ########.fr       */
+/*   Updated: 2024/09/20 01:05:26 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -117,7 +117,7 @@ void	export(t_maintools *tools)
 		var_in_env(&tools->str, tools->en);
 		tools->str = rm_bs(tools->str);
 		tools->strs = parse_args(tools->str, "export");
-		add_exp(tools->strs, &tools->ex, &tools->en);
+		add_exp(tools->strs, &tools->ex, &tools->en, 0);
 		free_args(&tools->strs);
 	}
 }
@@ -132,6 +132,7 @@ int	cd(t_maintools *tools)
 		tools->strs = parse_args(tools->str, "cd");
 		printf("bash: cd: too many arguments");
 		free(tools->str);
+		exit_status = 1;
 		return (0);
 	}
 	if (count_args(tools->str, "cd") == 0)
@@ -139,8 +140,11 @@ int	cd(t_maintools *tools)
 		if (chdir(env_search("HOME", tools->en)) == 0)
 			tools->cd = getcwd(NULL, 0);
 		else
+		{
 			printf("cd: %s : No such file or directory\n",
 				env_search("HOME", tools->en));
+			exit_status = 1;
+		}
 		free(tools->str);
 		return (0);
 	}
@@ -177,7 +181,7 @@ void	exec(t_maintools *tools)
 			tools->strs[1] = NULL;
 		}
 		q_args(tools->strs);
-		check_ve(tools->strs, tools->en);
+		check_ve(tools->strs, tools->en, 0);
 		free_args(&tools->strs);
 		free(tools->temp);
 	}
@@ -274,7 +278,6 @@ int	main_main(t_maintools *tools)
 	{
 		exitt(tools);
 		ex_st(tools->strs);
-		printf("%d\n\n", exit_status);
 		return (0);
 	}
 	else if (parse_cmd(tools->str, "echo") >= 0)
@@ -284,7 +287,7 @@ int	main_main(t_maintools *tools)
 	else if (parse_cmd(tools->str, "export") >= 0)
 		export(tools);
 	else if (parse_cmd(tools->str, "pwd") >= 0)
-		get_pwd();
+		get_pwd(tools->str);
 	else if (parse_cmd(tools->str, "cd") >= 0)
 	{
 		if (cd(tools) == 0)
@@ -294,6 +297,7 @@ int	main_main(t_maintools *tools)
 		unset(tools);
 	else
 		exec(tools);
+	// printf("%d\n\n", exit_status); 
 	return (1);
 }
 

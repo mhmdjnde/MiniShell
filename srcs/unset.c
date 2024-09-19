@@ -104,6 +104,20 @@ char	*ret_to_equal2(char *str)
 	return (r);
 }
 
+int	check_unset(char *str)
+{
+	int	i;
+
+	i = 0;
+	while (str[i] != '\0')
+	{
+		if (str[i] == '=' || str[i] == '+')
+			return (i);
+		i++;
+	}
+	return (-1);
+}
+
 void	rm_exp(char **args, char ***ex, char ***en)
 {
 	int		i;
@@ -117,9 +131,16 @@ void	rm_exp(char **args, char ***ex, char ***en)
 		t3 = without_quotes_ret(args[i], 0);
 		t = ret_to_equal2(t3);
 		t2 = add_equal(t);
-		if (check_equal(args[i]) == 0)
+		// if (i == 1)
+		// {
+		// 	if (t3[0] == -n)
+		// }
+		if (check_unset(args[i]) != -1)
 		{
 			i++;
+			free(t);
+			free(t2);
+			free(t3);
 			continue ;
 		}
 		if (ret_s_indexx(t2, *en) != -1)

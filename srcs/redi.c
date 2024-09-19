@@ -377,6 +377,7 @@ int	red_func_loop(t_redtools *red, int **fd, int *i, int **inout)
 		{
 			printf("%s no such file or directory\n", red[*i].file);
 			free((*fd));
+			exit_status = 1;
 			return (0);
 		}
 		(*inout)[1] = *i;

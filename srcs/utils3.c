@@ -125,7 +125,7 @@ void	run_loop(char *str, int *i, int *j, char **wd)
 {
 	while (str[*i] != '\0')
 	{
-		if (str[*i] == '$' && str[*i + 1] == '$')
+		if (str[*i] == '$' && (str[*i + 1] == '$' || str[*i + 1] == '?'))
 		{
 			(*wd)[*j] = str[*i];
 			(*i)++;

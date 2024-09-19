@@ -189,7 +189,7 @@ void	wq_helper(int *i, char *str, char **result, int *j)
 	else if (str[*i] == '\'')
 	{
 		// qf = 2;
-		without_q_ret(i, str, result, i);
+		without_q_ret(i, str, result, j);
 		// qf = 0;
 	}
 	else

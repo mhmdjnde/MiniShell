@@ -134,6 +134,6 @@ void	del_temp(char *tp, char **en)
 		args[0] = ft_strdup("rm");
 		args[1] = ft_strdup(tp);
 		args[2] = NULL;
-		check_ve(args, en);
+		check_ve(args, en, 1);
 	}
 }

@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/31 17:20:33 by mjoundi           #+#    #+#             */
-/*   Updated: 2024/09/18 15:48:38 by marvin           ###   ########.fr       */
+/*   Updated: 2024/09/20 00:52:53 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,7 +58,7 @@ char	*get_cmd(char *str)
 	return (temp);
 }
 
-int	execute_command(char *cmd_path, char **args, char **env)
+int	execute_command(char *cmd_path, char **args, char **env, int f)
 {
 	int	pid;
 	int	status;
@@ -82,11 +82,13 @@ int	execute_command(char *cmd_path, char **args, char **env)
 	else
 	{
 		waitpid(pid, &status, 0);
-		return (status);
+		if (f != 1)
+		exit_status = status >> 8;
+        return (exit_status);
 	}
 }
 
-int	check_absolute_path(char **args, char **env, int *flag)
+int	check_absolute_path(char **args, char **env, int *flag, int f)
 {
 	struct stat	sb;
 
@@ -95,15 +97,15 @@ int	check_absolute_path(char **args, char **env, int *flag)
 		if (stat(args[0], &sb) == 0)
 		{
 			if ((sb.st_mode & S_IFMT) == S_IFDIR
-				&& print_in_chek_absolute_dir(args) == 0)
+				&& print_in_chek_absolute_dir(args, f) == 0)
 				return (-1);
 			else if (access(args[0], X_OK) == 0)
 			{
 				*flag = 1;
-				return (execute_command(args[0], args, env));
+				return (execute_command(args[0], args, env, f));
 			}
 			else
-				return (print_in_chek_absolute_denied(args));
+				return (print_in_chek_absolute_denied(args, f));
 		}
 		else
 			return (print_in_chek_absolute_no_file(args));
@@ -132,11 +134,11 @@ char	*construct_command_path(t_check_ve *vars, char *cmd)
 	return (cmd_path);
 }
 
-int	check_ve(char **args, char **env)
+int	check_ve(char **args, char **env, int f)
 {
 	t_check_ve	vars;
 
-	init_vars(&vars, args, env);
+	init_vars(&vars, args, env, f);
 	if (vars.result != 0)
 		return (vars.result);
 	if (vars.path == NULL)
@@ -152,25 +154,27 @@ int	check_ve(char **args, char **env)
 		if (vars.cmd_path == NULL)
 			return (-1);
 		if (access(vars.cmd_path, X_OK) == 0)
-			return (returned_status(&vars, args, env));
+			return (returned_status(&vars, args, env, f));
 		free(vars.cmd_path);
 		increment_i(&vars);
 	}
 	if (vars.flag == 0)
-		print_in_checkve(args);
+		print_in_checkve(args, f);
 	return (-1);
 }
 
-void	print_in_checkve(char **args)
+void	print_in_checkve(char **args, int f)
 {
+	if (f != 1)
+		exit_status = 127;
 	printf("error: %s command not found\n",  args[0]);
 }
 
-void	init_vars(t_check_ve *vars, char **args, char **env)
+void	init_vars(t_check_ve *vars, char **args, char **env, int f)
 {
 	vars->flag = 0;
 	vars->result = 0;
-	vars->result = check_absolute_path(args, env, &vars->flag);
+	vars->result = check_absolute_path(args, env, &vars->flag, f);
 	vars->i = 0;
 	vars->status = 0;
 	vars->dir_len = 0;
@@ -211,26 +215,30 @@ void	increment_i(t_check_ve *vars)
 		vars->i += vars->dir_len;
 }
 
-int	returned_status(t_check_ve *vars, char **args, char **env)
+int	returned_status(t_check_ve *vars, char **args, char **env, int f)
 {
-	vars->status = execute_command(vars->cmd_path, args, env);
+	vars->status = execute_command(vars->cmd_path, args, env, f);
 	free(vars->cmd_path);
 	return (vars->status);
 }
 
-int	print_in_chek_absolute_dir(char **args)
+int	print_in_chek_absolute_dir(char **args, int f)
 {
 	write(2, "bash: ", 6);
 	without_quotes(args[0], 0);
 	write(2, ": Is a directory\n", 17);
+	if (f != 1)
+		exit_status = 127;
 	return (0);
 }
 
-int	print_in_chek_absolute_denied(char **args)
+int	print_in_chek_absolute_denied(char **args, int f)
 {
 	write(2, "bash: ", 6);
 	without_quotes(args[0], 0);
 	write(2, ": Permission denied\n", 20);
+	if (f != 1)
+		exit_status = 126;
 	return (-1);
 }
 
