@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/05 17:33:35 by fdahouk           #+#    #+#             */
-/*   Updated: 2024/09/13 23:05:29 by marvin           ###   ########.fr       */
+/*   Updated: 2024/09/20 02:35:16 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,6 +62,6 @@ void	inc_shlvl(char ***ex, char ***en)
 	strncat(str, new_lvl_str, ft_strlen(new_lvl_str));
 	free(new_lvl_str);
 	args[1] = str;
-	add_exp(args, ex, en);
+	add_exp(args, ex, en, 1);
 	free_args(&args);
 }

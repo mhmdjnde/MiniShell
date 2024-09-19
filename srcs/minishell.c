@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/27 19:07:27 by mjoundi           #+#    #+#             */
-/*   Updated: 2024/09/20 01:05:26 by marvin           ###   ########.fr       */
+/*   Updated: 2024/09/20 02:58:50 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -334,7 +334,7 @@ int	main(int ac, char **av, char **env)
 		if (pipe_check(tools.str) == 0)
 		{
 			test = run_one_cmd(&tools);
-			if (test == 1)
+			if (test == -1)
 				continue ;
 			else if (test == 2)
 				break ;
