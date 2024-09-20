@@ -29,12 +29,19 @@ int	check_red1(char *str, int i, char cr, char c)
 {
 	if (redname_check(str, i) == 0)
 	{
-		printf("syntax error near %c\n", cr);
+		write(2,  "minishell: syntax error near unexpected token `", 37);
+		write(2, &cr, 1);
+		write(2,  "'\n", 2);
+
+		// printf("syntax error near %c\n", cr);
 		return (-4);
 	}
 	if ((cr == '>' && str[i] == '<') || (cr == '<' && str[i] == '>'))
 	{
-		printf("syntax error near %c\n", cr);
+		write(2,  "minishell: syntax error near unexpected token `", 37);
+		write(2, &cr, 1);
+		write(2,  "'", 1);
+		// printf("syntax error near %c\n", cr);
 		return (-1);
 	}
 	if (c == 1 && str[i] != '\0')
@@ -58,17 +65,24 @@ int	check_red2(char *str, int i, char cr, char c)
 {
 	if (c == 3)
 	{
-		printf("syntax error near %c\n", cr);
+		write(2,  "minishell: syntax error near unexpected token `", 37);
+		write(2, &cr, 1);
+		write(2,  "'", 1);
+		// printf("syntax error near %c\n", cr);
 		return (-2);
 	}
 	if (c > 3)
 	{
-		printf("syntax error near %c%c\n", cr, cr);
+		write(2,  "minishell: syntax error near unexpected token `", 37);
+		write(2, &cr, 1);
+		write(2, &cr, 1);
+		write(2,  "'", 1);
+		// printf("syntax error near %c%c\n", cr, cr);
 		return (-3);
 	}
 	if (str[i] == '\0')
 	{
-		printf("syntax error near 'newline'\n");
+		write(2, "syntax error near 'newline'\n", 28);
 		return (0);
 	}
 	return (10);
@@ -210,12 +224,15 @@ int	file_l(t_redmain *r, char **str)
 	return (1);
 }
 
-int	red_loop(t_redmain *r, char **str)
+int	red_loop(t_redmain *r, char **str, int *exit_status)
 {
 	r->rf = 1;
 	r->check = check_red((*str) + r->tab[0]);
 	if (r->check <= 0)
+	{
+		*exit_status = 2;
 		return (0);
+	}
 	if (r->check == 1 || r->check == 2)
 		r->tab[0]++;
 	else
@@ -250,7 +267,7 @@ void	red_q(t_redmain *r, char **str)
 		r->rf = 0;
 }
 
-int	red_main_loop(t_redmain *r, char **str)
+int	red_main_loop(t_redmain *r, char **str, int *exit_status)
 {
 	int	t;
 
@@ -258,7 +275,7 @@ int	red_main_loop(t_redmain *r, char **str)
 		red_q(r, str);
 	else if ((*str)[r->tab[0]] == '>' || (*str)[r->tab[0]] == '<')
 	{
-		t = red_loop(r, str);
+		t = red_loop(r, str, exit_status);
 		if (t == 0)
 			return (0);
 		else if (t == 1)
@@ -278,7 +295,7 @@ int	red_main_loop(t_redmain *r, char **str)
 	return (-1);
 }
 
-t_redtools	*red_after_cmd(char **str)
+t_redtools	*red_after_cmd(char **str, int *exit_status)
 {
 	t_redmain	r;
 	int			t;
@@ -292,7 +309,7 @@ t_redtools	*red_after_cmd(char **str)
 		r.tab[0]++;
 	while ((*str)[r.tab[0]] != '\0')
 	{
-		t = red_main_loop(&r, str);
+		t = red_main_loop(&r, str, exit_status);
 		if (t == 0)
 		{
 			r.red[r.tab[2]].file = NULL;
@@ -378,16 +395,18 @@ int	red_func_loop(t_redtools *red, int **fd, int *i, int **inout)
 		(*fd)[1] = open(red[*i].file, O_RDONLY);
 		if ((*fd)[1] < 0)
 		{
-			printf("%s no such file or directory\n", red[*i].file);
+			ft_putstr_fd(red[*i].file, 2);
+			write(2, ": No such file or directory\n", 28);
+
+			// printf("%s no such file or directory\n", red[*i].file);
 			free((*fd));
-			exit_status = 1;
-			return (0);
+			return (1);
 		}
 		(*inout)[1] = *i;
 		close((*fd)[1]);
 	}
 	(*i)++;
-	return (1);
+	return (0);
 }
 
 int	open_lout(int *inout, int **fd, t_redtools *red)
@@ -407,7 +426,7 @@ int	open_lout(int *inout, int **fd, t_redtools *red)
 	return (1);
 }
 
-int	*func_red(t_redtools *red)
+int	*func_red(t_redtools *red, int *exit_status)
 {
 	int	i;
 	int	*inout;
@@ -424,8 +443,11 @@ int	*func_red(t_redtools *red)
 	while (red[i].file != NULL)
 	{
 		t = red_func_loop(red, &fd, &i, &inout);
-		if (t == 0)
+		if (t == 1)
+		{
+			*exit_status = 1;
 			return (free(inout), NULL);
+		}
 	}
 	t = open_lin(inout[0], &fd, red);
 	if (t == 0)

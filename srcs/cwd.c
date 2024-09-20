@@ -12,7 +12,7 @@
 
 #include "minishell.h"
 
-void	get_pwd(char *str)
+void	get_pwd(char *str, int *exit_status)
 {
 	char	*cwd;
 	char	**args;
@@ -24,10 +24,10 @@ void	get_pwd(char *str)
 		temp = without_quotes_ret(args[1], 0);
 		if (temp[0] == '-')
 		{
-			printf("invalid flag\n");
+			write(2, "invalid flag\n", 13);
 			free(temp);
 			free_args(&args);
-			exit_status = 2;
+			*exit_status = 2;
 			return ;
 		}
 		else
@@ -42,22 +42,23 @@ void	get_pwd(char *str)
 		printf("%s\n", cwd);
 		free(cwd);
 	}
-	exit_status = 0;
+	*exit_status = 0;
 }
 
-void	tildacase(char **env, char **old)
+void	tildacase(char **env, char **old, int *exit_status)
 {
 	if (chdir(env_search("HOME", env)) == 0)
 		*old = getcwd(NULL, 0);
 	else
 	{
-		exit_status = 1;
-		printf("cd: %s : No such file or directory\n",
-			env_search("HOME", env));
+		*exit_status = 1;
+		write(2, "cd: ", 4);
+		ft_putstr_fd(env_search("HOME", env), 2);
+		write(2, "No such file or directory\n", 26);
 	}
 }
 
-void	minuscase(char **old)
+void	minuscase(char **old, int *exit_status)
 {
 	char	*current_dir;
 
@@ -72,33 +73,37 @@ void	minuscase(char **old)
 		}
 		else
 		{
-			exit_status = 1;
-			printf("cd: %s : No such file or directory\n", *old);
+			*exit_status = 1;
+			write(2, "cd: ", 4);
+			ft_putstr_fd(*old, 2);
+			write(2, "No such file or directory\n", 26);
 			free(current_dir);
 		}
 	}
 }
 
-void	no_file(char *str, char *current_dir)
+void	no_file(char *str, char *current_dir, int *exit_status)
 {
-	exit_status = 1;
-	printf("cd: %s : No such file or directoryy\n", str);
+	*exit_status = 1;
+	write(2, "cd: ", 4);
+	ft_putstr_fd(str, 2);
+	write(2, "No such file or directory\n", 26);
 	free(current_dir);
 }
 
-void	do_cd(char **env, char *str, char **old)
+void	do_cd(char **env, char *str, char **old, int *exit_status)
 {
 	char	*current_dir;
 
 	current_dir = getcwd(NULL, 0);
 	if (ft_strlen(str) == 1 && str[0] == '~')
 	{
-		tildacase(env, old);
+		tildacase(env, old, exit_status);
 		free(current_dir);
 	}
 	else if (ft_strlen(str) == 1 && str[0] == '-')
 	{
-		minuscase(old);
+		minuscase(old, exit_status);
 		free(current_dir);
 	}
 	else
@@ -107,11 +112,11 @@ void	do_cd(char **env, char *str, char **old)
 		{
 			free(*old);
 			*old = current_dir;
-			exit_status = 0;
+			*exit_status = 0;
 		}
 		else
 		{
-			no_file(str, current_dir);
+			no_file(str, current_dir, exit_status);
 		}
 	}
 }

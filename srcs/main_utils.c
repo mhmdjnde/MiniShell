@@ -69,14 +69,14 @@ void	q_args2(char **args)
 	}
 }
 
-int	*red_run(char **str, t_tmptools *tmp, char **en)
+int	*red_run(char **str, t_tmptools *tmp, char **en, int *exit_status)
 {
 	t_redtools	*red;
 	int			*fd;
 	int			i;
 
 	i = 0;
-	red = red_after_cmd(str);
+	red = red_after_cmd(str, exit_status);
 	while (red != NULL && red[i].file != NULL)
 	{
 		tmp->tmp = red[i].file;
@@ -87,7 +87,7 @@ int	*red_run(char **str, t_tmptools *tmp, char **en)
 	if (red == NULL)
 		return (NULL);
 	tmp->tmp = heredoc(&red, en);
-	fd = func_red(red);
+	fd = func_red(red, exit_status);
 	if (fd == NULL)
 	{
 		free_red(red);
@@ -97,16 +97,16 @@ int	*red_run(char **str, t_tmptools *tmp, char **en)
 	return (fd);
 }
 
-void	setup_signals(void)
-{
-	struct sigaction	sa;
+// void	setup_signals(void)
+// {
+// 	struct sigaction	sa;
 
-	sa.sa_handler = handle_sigint;
-	sigemptyset(&sa.sa_mask);
-	sa.sa_flags = SA_RESTART;
-	sigaction(SIGINT, &sa, NULL);
-	signal(SIGQUIT, SIG_IGN);
-}
+// 	sa.sa_handler = handle_sigint;
+// 	sigemptyset(&sa.sa_mask);
+// 	sa.sa_flags = SA_RESTART;
+// 	sigaction(SIGINT, &sa, NULL);
+// 	signal(SIGQUIT, SIG_IGN);
+// }
 
 int	fix_after_red(int in, int out, int *fd)
 {
@@ -125,7 +125,9 @@ int	fix_after_red(int in, int out, int *fd)
 void	del_temp(char *tp, char **en)
 {
 	char	**args;
+	int		exit_status;
 
+	exit_status = 0;
 	if (tp != NULL)
 	{
 		args = malloc(3 * sizeof(char *));
@@ -134,6 +136,6 @@ void	del_temp(char *tp, char **en)
 		args[0] = ft_strdup("rm");
 		args[1] = ft_strdup(tp);
 		args[2] = NULL;
-		check_ve(args, en, 1);
+		check_ve(args, en, 1, &exit_status);
 	}
 }

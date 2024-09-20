@@ -27,8 +27,6 @@
 # include <sys/types.h>
 # include <sys/stat.h>
 
-extern int exit_status;
-
 typedef struct s_redtools
 {
 	char	*file;
@@ -54,6 +52,7 @@ typedef struct s_maintools
 	int			in;
 	int			*fd;
 	t_tmptools	tmp;
+	int			exit_status;
 }	t_maintools;
 
 typedef struct s_redmain
@@ -92,7 +91,7 @@ int			is_ok(char c);
 int			is_ok2(char c);
 int			get_pid(void);
 int			ft_atoi(const char *nptr);
-int			check_ve(char **args, char **env, int f);
+int			check_ve(char **args, char **env, int f, int *exit_status);
 char		*ft_substr(char *s, int start, int len);
 char		*get_cmd(char *str);
 void		edit_pwd(char ***ex, char ***en);
@@ -103,24 +102,24 @@ void		ft_strncpy(char *dest, char *src, int n);
 void		find_arg_bounds(char *str, int *index, char **start, int *len);
 char		*extract_arg(char *str, int *index);
 char		**parse_args(char *str, char *cmd);
-void		exit_args_check(char **args);
+void		exit_args_check(char **args, int *exit_status);
 void		free_args(char ***args);
 void		echo_args_check(char **strs);
 void		q_args(char **args);
 void		without_quotes(char *str, int flag);
 void		print_env(char **env);
 char		*ft_strcpy(char *dest, char *src);
-void		var_in_env(char **str, char **env);
+void		var_in_env(char **str, char **env, int *exit_status);
 char		*without_quotes_ret(char *str, int flag);
 char		*rm_dl(char *str);
 char		*rm_bs(char *str);
 void		print_exp(char **ex);
 char		**env_copy(char **env);
 void		sort_env(char **arr, int n);
-void		get_pwd(char *str);
+void    get_pwd(char *str, int *exit_status);
 char		*env_search(char *str, char **env);
-void	add_exp(char **args, char ***ex, char ***en, int sf);
-void		do_cd(char **env, char *str, char **old);
+void	add_exp(t_maintools *tools, char ***ex, char ***en, int sf);
+void		do_cd(char **env, char *str, char **old, int *exit_status);
 char		*add_equal(char *str);
 void		rm_exp(char **args, char ***ex, char ***en);
 char		*ret_to_equal(char *str);
@@ -136,8 +135,8 @@ int			redin_check(char **rediles, int rfd);
 void		red_rem(char **strs, char **rediles);
 int			rederror(char **rediles);
 char		**parse_files(char **strs);
-t_redtools	*red_after_cmd(char **str);
-int			*func_red(t_redtools *red);
+t_redtools	*red_after_cmd(char **str, int *exit_status);
+int			*func_red(t_redtools *red, int *exit_status);
 void		free_red(t_redtools *red);
 void		ft_putendl_fd(char *s, int fd);
 void		ft_putstr_fd(char *s, int fd);
@@ -149,25 +148,27 @@ void		exp_q(char **ex);
 int			empty(char *str);
 void		q_args(char **args);
 void		q_args2(char **args);
-int			*red_run(char **str, t_tmptools *tmp, char **en);
-void		setup_signals(void);
+int			*red_run(char **str, t_tmptools *tmp, char **en, int *exit_status);
 int			fix_after_red(int in, int out, int *fd);
 void		del_temp(char *tp, char **en);
 int			args_len(char **strs);
 //  exec_other functions start
-void	init_vars(t_check_ve *vars, char **args, char **env, int f);
-void	print_in_checkve(char **args, int f);
+void	init_vars(t_check_ve *vars, char **args, char **env, int f, int *exit_status);
+void	print_in_checkve(char **args, int f, int *exit_status);
 void		calc_dir_lenth(t_check_ve *vars);
 void		dup_into_dir(t_check_ve *vars);
 void		increment_i(t_check_ve *vars);
-int	returned_status(t_check_ve *vars, char **args, char **env, int f);
+int	returned_status(t_check_ve *vars, char **args, char **env, int f, int *exit_status);
 int			print_in_chek_absolute_no_file(char **args);
-int	print_in_chek_absolute_denied(char **args, int f);
-int	print_in_chek_absolute_dir(char **args, int f);
+int	print_in_chek_absolute_denied(char **args, int f, int *exit_status);
+int	print_in_chek_absolute_dir(char **args, int f, int *exit_status);
 int			get_j_in_getcmd(char *str);
 //  exec_other functions end 
 int			pipe_check(char *str);
 int		run_one_cmd(t_maintools *tools);
 long long	ft_atol(const char *nptr);
 void	fill_status(char **args);
+void	setup_signals(void);
+void ignore_signals(void);
+void restore_signals(void);
 #endif

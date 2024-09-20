@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/18 15:22:05 by marvin            #+#    #+#             */
-/*   Updated: 2024/09/20 02:59:19 by marvin           ###   ########.fr       */
+/*   Updated: 2024/09/21 01:22:30 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -144,25 +144,25 @@ void 	run_pipes(t_maintools *tools)
 	}
 }
 
-int	check_token_err(char **cmds)
-{
-	t_redtools	*red;
-	char		*temp;
-	int			i;
+// int	check_token_err(char **cmds)
+// {
+// 	t_redtools	*red;
+// 	char		*temp;
+// 	int			i;
 
-	i = 0;
-	while (cmds[i] != NULL)
-	{
-		temp = ft_strdup(cmds[i]);
-		red = red_after_cmd(&temp);
-		if (red == NULL)
-			return (0);
-		free(temp);
-		free_red(red);
-		i++;
-	}
-	return (1);
-}
+// 	i = 0;
+// 	while (cmds[i] != NULL)
+// 	{
+// 		temp = ft_strdup(cmds[i]);
+// 		red = red_after_cmd(&temp);
+// 		if (red == NULL)
+// 			return (0);
+// 		free(temp);
+// 		free_red(red);
+// 		i++;
+// 	}
+// 	return (1);
+// }
 
 // int	main(void)
 // {

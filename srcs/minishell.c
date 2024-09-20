@@ -6,13 +6,13 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/27 19:07:27 by mjoundi           #+#    #+#             */
-/*   Updated: 2024/09/20 02:58:50 by marvin           ###   ########.fr       */
+/*   Updated: 2024/09/21 02:01:09 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-int exit_status = 0;
+// int exit_status = 0;
 
 // if (tools->in == -1 || tools->out == -1)
 // {
@@ -24,6 +24,7 @@ void	ini_tools_1(t_maintools *tools, char **env)
 {
 	tools->out = dup(STDOUT_FILENO);
 	tools->in = dup(STDIN_FILENO);
+	tools->exit_status = 0;
 	setup_signals();
 	tools->cd = getcwd(NULL, 0);
 	tools->en = env_copy(env);
@@ -55,11 +56,12 @@ int	check_before_run(t_maintools *tools)
 {
 	if (!valquotes(tools->str))
 	{
-		printf("invalid quotes\n");
+		write(2, "invalid quotes\n", 15);
 		free(tools->str);
+		tools->exit_status = 2;
 		return (0);
 	}
-	tools->tmp.fd = red_run(&tools->str, &tools->tmp, tools->en);
+	tools->tmp.fd = red_run(&tools->str, &tools->tmp, tools->en, &tools->exit_status);
 	if (tools->tmp.fd == NULL)
 	{
 		if (tools->tmp.tmp)
@@ -73,14 +75,14 @@ int	check_before_run(t_maintools *tools)
 void	exitt(t_maintools *tools)
 {
 	tools->str = rm_dl(tools->str);
-	var_in_env(&tools->str, tools->en);
+	var_in_env(&tools->str, tools->en, &tools->exit_status);
 	tools->str = rm_bs(tools->str);
 	tools->strs = parse_args(tools->str, "exit");
 	printf("exit\n");
-	exit_args_check(tools->strs);
+	exit_args_check(tools->strs, &tools->exit_status);
 }
 
-void	envv(char **env)
+void	envv(char **env, int *exit_status)
 {
 	int	i;
 
@@ -90,18 +92,18 @@ void	envv(char **env)
 		printf("%s\n", env[i]);
 		i++;
 	}
-	exit_status = 0;
+	*exit_status = 0;
 }
 
 void	echo(t_maintools *tools)
 {
 	tools->str = rm_dl(tools->str);
-	var_in_env(&tools->str, tools->en);
+	var_in_env(&tools->str, tools->en, &tools->exit_status);
 	tools->str = rm_bs(tools->str);
 	tools->strs = parse_args(tools->str, "echo");
 	echo_args_check(tools->strs);
 	free_args(&tools->strs);
-	exit_status = 0;
+	tools->exit_status = 0;
 }
 
 void	export(t_maintools *tools)
@@ -109,15 +111,15 @@ void	export(t_maintools *tools)
 	if (count_args(tools->str, "export") == 0)
 	{
 		print_exp(tools->ex);
-		exit_status = 0;
+		tools->exit_status = 0;
 	}
 	else
 	{
 		tools->str = rm_dl(tools->str);
-		var_in_env(&tools->str, tools->en);
+		var_in_env(&tools->str, tools->en, &tools->exit_status);
 		tools->str = rm_bs(tools->str);
 		tools->strs = parse_args(tools->str, "export");
-		add_exp(tools->strs, &tools->ex, &tools->en, 0);
+		add_exp(tools, &tools->ex, &tools->en, 0);
 		free_args(&tools->strs);
 	}
 }
@@ -125,14 +127,14 @@ void	export(t_maintools *tools)
 int	cd(t_maintools *tools)
 {
 	tools->str = rm_dl(tools->str);
-	var_in_env(&tools->str, tools->en);
+	var_in_env(&tools->str, tools->en, &tools->exit_status);
 	tools->str = rm_bs(tools->str);
 	if (count_args(tools->str, "cd") > 1)
 	{
 		tools->strs = parse_args(tools->str, "cd");
-		printf("bash: cd: too many arguments");
+		write(2, "bash: cd: too many arguments\n", 29);
 		free(tools->str);
-		exit_status = 1;
+		tools->exit_status = 1;
 		return (0);
 	}
 	if (count_args(tools->str, "cd") == 0)
@@ -141,15 +143,18 @@ int	cd(t_maintools *tools)
 			tools->cd = getcwd(NULL, 0);
 		else
 		{
-			printf("cd: %s : No such file or directory\n",
-				env_search("HOME", tools->en));
-			exit_status = 1;
+			write(2, "cd: ", 4);
+			ft_putstr_fd(env_search("HOME", tools->en), 2);
+			write(2, " No such file or directory\n", 26);
+			// printf("cd: %s : No such file or directory\n",
+			// 	env_search("HOME", tools->en));
+			tools->exit_status = 1;
 		}
 		free(tools->str);
 		return (0);
 	}
 	tools->strs = parse_args(tools->str, "cd");
-	do_cd(tools->en, tools->strs[1], &tools->cd);
+	do_cd(tools->en, tools->strs[1], &tools->cd, &tools->exit_status);
 	free_args(&tools->strs);
 	return (1);
 }
@@ -157,7 +162,7 @@ int	cd(t_maintools *tools)
 void	unset(t_maintools *tools)
 {
 	tools->str = rm_dl(tools->str);
-	var_in_env(&tools->str, tools->en);
+	var_in_env(&tools->str, tools->en, &tools->exit_status);
 	tools->str = rm_bs(tools->str);
 	tools->strs = parse_args(tools->str, "unset");
 	rm_exp(tools->strs, &tools->ex, &tools->en);
@@ -169,7 +174,7 @@ void	exec(t_maintools *tools)
 	if (!empty(tools->str))
 	{
 		tools->str = rm_dl(tools->str);
-		var_in_env(&tools->str, tools->en);
+		var_in_env(&tools->str, tools->en, &tools->exit_status);
 		tools->str = rm_bs(tools->str);
 		tools->temp = get_cmd(tools->str);
 		if (count_args(tools->str, tools->temp) != 0)
@@ -181,7 +186,7 @@ void	exec(t_maintools *tools)
 			tools->strs[1] = NULL;
 		}
 		q_args(tools->strs);
-		check_ve(tools->strs, tools->en, 0);
+		check_ve(tools->strs, tools->en, 0, &tools->exit_status);
 		free_args(&tools->strs);
 		free(tools->temp);
 	}
@@ -230,7 +235,7 @@ int	is_num(char *str)
 	return (1);
 }
 
-void	ex_st(char **args)
+void	ex_st(char **args, int *exit_status)
 {
 	long long	l;
 	char		*temp;
@@ -239,18 +244,21 @@ void	ex_st(char **args)
 	{
 		temp = without_quotes_ret(args[1], 0);
 		if (!is_num(temp))
-			exit_status = 2;
+			*exit_status = 2;
 		else
 		{
 			l = ft_atol(args[1]);
 			if (l < 0 && l >= -9223372036854775807LL - 1)
 				l += 256 * ((-l / 256) + 1);
 			if (l <= 9223372036854775807LL && l >= -9223372036854775807LL - 1)
-				exit_status = l % 256;
+				*exit_status = l % 256;
 			else
 			{
-				printf("bash: exit: %s: numeric argument required", args[1]);
-				exit_status = 2;
+				write(2, "bash: exit: ", 12);
+				write(2, args[1], ft_strlen(args[1]));
+				write(2, ": numeric argument required\n", 25);
+				// printf("bash: exit: %s: numeric argument required", args[1]);
+				*exit_status = 2;
 			}
 		}
 		free(temp);
@@ -259,14 +267,14 @@ void	ex_st(char **args)
 	{
 		temp = without_quotes_ret(args[1], 0);
 		if (!is_num(temp))
-			exit_status = 2;
+			*exit_status = 2;
 		else
 		{
 			l = ft_atol(args[1]);
 			if (l <= 9223372036854775807LL && l >= -9223372036854775807LL - 1)
-				exit_status = 1;
+				*exit_status = 1;
 			else
-				exit_status = 2;
+				*exit_status = 2;
 		}
 		free(temp);
 	}
@@ -277,17 +285,17 @@ int	main_main(t_maintools *tools)
 	if (parse_cmd(tools->str, "exit") >= 0)
 	{
 		exitt(tools);
-		ex_st(tools->strs);
+		ex_st(tools->strs, &tools->exit_status);
 		return (0);
 	}
 	else if (parse_cmd(tools->str, "echo") >= 0)
 		echo(tools);
 	else if (parse_cmd(tools->str, "env") >= 0)
-		envv(tools->en);
+		envv(tools->en, &tools->exit_status);
 	else if (parse_cmd(tools->str, "export") >= 0)
 		export(tools);
 	else if (parse_cmd(tools->str, "pwd") >= 0)
-		get_pwd(tools->str);
+		get_pwd(tools->str, &tools->exit_status);
 	else if (parse_cmd(tools->str, "cd") >= 0)
 	{
 		if (cd(tools) == 0)
@@ -297,7 +305,7 @@ int	main_main(t_maintools *tools)
 		unset(tools);
 	else
 		exec(tools);
-	// printf("%d\n\n", exit_status); 
+	printf("%d\n\n", tools->exit_status); 
 	return (1);
 }
 

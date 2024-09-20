@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/05 17:33:35 by fdahouk           #+#    #+#             */
-/*   Updated: 2024/09/20 02:35:16 by marvin           ###   ########.fr       */
+/*   Updated: 2024/09/21 01:27:14 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,24 +44,24 @@ int	shlvl_func(int *lvl, char **str, char **new_lvl_str, char ***args)
 void	inc_shlvl(char ***ex, char ***en)
 {
 	int		lvl;
-	char	**args;
 	char	*new_lvl_str;
 	char	*str;
+	t_maintools t_tools;
 
-	args = malloc(3 * sizeof(char *));
-	if (!args)
+	t_tools.strs = malloc(3 * sizeof(char *));
+	if (!t_tools.strs)
 		return ;
-	args[0] = malloc(6);
-	ft_strcpy(args[0], "SHLVL");
-	args[1] = ft_strdup("$SHLVL");
-	args[2] = NULL;
-	var_in_env(&args[1], *en);
-	if (shlvl_func(&lvl, &str, &new_lvl_str, &args) == 0)
+	t_tools.strs[0] = malloc(6);
+	ft_strcpy(t_tools.strs[0], "SHLVL");
+	t_tools.strs[1] = ft_strdup("$SHLVL");
+	t_tools.strs[2] = NULL;
+	var_in_env(&t_tools.strs[1], *en, &lvl);
+	if (shlvl_func(&lvl, &str, &new_lvl_str, &t_tools.strs) == 0)
 		return ;
 	ft_strcpy(str, "SHLVL=");
 	strncat(str, new_lvl_str, ft_strlen(new_lvl_str));
 	free(new_lvl_str);
-	args[1] = str;
-	add_exp(args, ex, en, 1);
-	free_args(&args);
+	t_tools.strs[1] = str;
+	add_exp(&t_tools, ex, en, 1);
+	free_args(&t_tools.strs);
 }

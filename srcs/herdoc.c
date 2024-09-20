@@ -45,7 +45,7 @@ void	func_hd_nl(char	*hd, char **en)
 			break ;
 		}
 		str = rm_dl(str);
-		var_in_env(&str, en);
+		var_in_env(&str, en, 0);
 		if (str)
 			free(str);
 	}
@@ -68,7 +68,7 @@ void	func_hd_l(int fd, char	**en, char *hd)
 			free(str);
 			break ;
 		}
-		var_in_env(&str, en);
+		var_in_env(&str, en, 0);
 		ft_putendl_fd(str, fd);
 		if (str)
 			free(str);

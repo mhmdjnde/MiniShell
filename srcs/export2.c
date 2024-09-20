@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/05 17:28:20 by fdahouk           #+#    #+#             */
-/*   Updated: 2024/09/20 01:02:44 by marvin           ###   ########.fr       */
+/*   Updated: 2024/09/21 01:10:08 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,7 +88,11 @@ void	func_add_exp(int i, char ***en, char **args, char ***ex)
 	int		idx;
 
 	if (check_equal(args[i]) == 0)
-		printf("%s: not a valid identifier\n", args[i]);
+	{
+		ft_putstr_fd(args[i], 2);
+		write(2, "not valid idenfier\n", 19);
+		// printf("%s: not a valid identifier\n", args[i]);
+	}
 	else
 	{
 		prefix = ret_to_equal(args[i]);
@@ -103,7 +107,7 @@ void	func_add_exp(int i, char ***en, char **args, char ***ex)
 	}
 }
 
-void	add_exp(char **args, char ***ex, char ***en, int sf)
+void	add_exp(t_maintools *tools, char ***ex, char ***en, int sf)
 {
 	int		i;
 	char	*temp;
@@ -111,56 +115,60 @@ void	add_exp(char **args, char ***ex, char ***en, int sf)
 
 	i = 1;
 	f = 0;
-	while (args[i] != NULL)
+	while ((tools->strs)[i] != NULL)
 	{
-		temp = without_quotes_ret(args[i], 0);
-		free(args[i]);
-		args[i] = temp;
-		if (!exp_arg_check(args[i]))
+		temp = without_quotes_ret((tools->strs)[i], 0);
+		free((tools->strs)[i]);
+		(tools->strs)[i] = temp;
+		if (!exp_arg_check((tools->strs)[i]))
 		{
-			if (args[i][0] == '-')
+			if ((tools->strs)[i][0] == '-')
 			{
-				printf("%s: invalid option\n", args[i]);
-				exit_status = 2;
+				write(2, "invalid option\n", 15);
+				ft_putstr_fd((tools->strs)[i], 2);
+				// printf("%s: invalid option\n", (tools->strs)[i]);
+				tools->exit_status = 2;
 				f = 1;
 			}
 			else
 			{
-				printf("%s: not a valid identifier\n", args[i]);
-				exit_status = 1;
+				write(2, "not valid idenfier\n", 19);
+				ft_putstr_fd((tools->strs)[i], 2);
+				// printf("%s: not a valid identifier\n", (tools->strs)[i]);
+				tools->exit_status = 1;
 				f = 1;
 			}
 		}
 		else
 		{
-			if (check_equal(args[i]) == -1)
+			if (check_equal((tools->strs)[i]) == -1)
 			{
-				if (ret_s_index(args[i], *ex) == -1)
-					*ex = export_enc(*ex, args[i]);
+				if (ret_s_index((tools->strs)[i], *ex) == -1)
+					*ex = export_enc(*ex, (tools->strs)[i]);
 			}
 			else
-				func_add_exp(i, en, args, ex);
+				func_add_exp(i, en, (tools->strs), ex);
 		}
 		i++;
 	}
 	if (f == 0 && sf == 0)
-		exit_status = 0;
+		tools->exit_status = 0;
 }
 
 void	edit_pwd(char ***ex, char ***en)
 {
-	char	**args;
 	char	*pwd;
+	t_maintools t_tools;
 
 	pwd = getcwd(NULL, 0);
-	args = malloc(3 * sizeof(char *));
-	args[0] = malloc(5);
-	ft_strcpy(args[0], "jnde");
-	args[1] = malloc(5 + ft_strlen(pwd) + 1);
-	ft_strcpy(args[1], "PWD=");
-	strncat(args[1], pwd, ft_strlen(pwd));
-	args[2] = NULL;
-	add_exp(args, ex, en, 1);
+	t_tools.strs = malloc(3 * sizeof(char *));
+	t_tools.strs[0] = malloc(5);
+	ft_strcpy(t_tools.strs[0], "jnde");
+	t_tools.strs[1] = malloc(5 + ft_strlen(pwd) + 1);
+	ft_strcpy(t_tools.strs[1], "PWD=");
+	strncat(t_tools.strs[1], pwd, ft_strlen(pwd));
+	t_tools.strs[2] = NULL;
+	add_exp(&t_tools, ex, en, 1);
 	free(pwd);
-	free_args(&args);
+	free_args(&t_tools.strs);
 }
