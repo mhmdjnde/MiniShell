@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/05 17:28:20 by fdahouk           #+#    #+#             */
-/*   Updated: 2024/09/21 01:10:08 by marvin           ###   ########.fr       */
+/*   Updated: 2024/09/21 18:55:46 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -161,6 +161,8 @@ void	edit_pwd(char ***ex, char ***en)
 	t_maintools t_tools;
 
 	pwd = getcwd(NULL, 0);
+	if (pwd == NULL)
+		return ;
 	t_tools.strs = malloc(3 * sizeof(char *));
 	t_tools.strs[0] = malloc(5);
 	ft_strcpy(t_tools.strs[0], "jnde");

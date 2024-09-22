@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/27 19:07:27 by mjoundi           #+#    #+#             */
-/*   Updated: 2024/09/21 02:01:09 by marvin           ###   ########.fr       */
+/*   Updated: 2024/09/21 19:08:47 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -305,7 +305,7 @@ int	main_main(t_maintools *tools)
 		unset(tools);
 	else
 		exec(tools);
-	printf("%d\n\n", tools->exit_status); 
+	// printf("%d\n\n", tools->exit_status); 
 	return (1);
 }
 
@@ -349,7 +349,7 @@ int	main(int ac, char **av, char **env)
 		}
 		else
 		{
-			printf("pipe is availble\n");
+			run_pipes(&tools);
 		}
 	}
 	printf("exit\n");

@@ -53,6 +53,7 @@ typedef struct s_maintools
 	int			*fd;
 	t_tmptools	tmp;
 	int			exit_status;
+	char		**cmds;
 }	t_maintools;
 
 typedef struct s_redmain
@@ -171,4 +172,6 @@ void	fill_status(char **args);
 void	setup_signals(void);
 void ignore_signals(void);
 void restore_signals(void);
+void	run_pipes(t_maintools *tools);
+
 #endif

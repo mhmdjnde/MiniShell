@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/18 15:22:05 by marvin            #+#    #+#             */
-/*   Updated: 2024/09/21 01:22:30 by marvin           ###   ########.fr       */
+/*   Updated: 2024/09/22 09:04:17 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -116,53 +116,102 @@ char	**parse_pipe(char *str)
 	return (cmds);
 }
 
-void	run_pipe(t_maintools *tools)
+int	check_token_err(char **cmds)
 {
-	int	fd[2];
-
-	if (pipe(fd) == -1)	
-		return;
-	dup2(fd[1],STDOUT_FILENO);
-	run_one_cmd(tools);
-	close(fd[1]);
-	close(fd[0]);
-}
-
-void 	run_pipes(t_maintools *tools)
-{
-	int		i;
-	char	**cmds;
+	t_redtools	*red;
+	char		*temp;
+	int			i;
+	int			es;
 
 	i = 0;
-	cmds = parse_pipe(tools->str);
-	free(tools->str);
+	es = 0;
 	while (cmds[i] != NULL)
 	{
-		tools->str = cmds[i];
-		run_pipe(tools);
+		temp = ft_strdup(cmds[i]);
+		red = red_after_cmd(&temp, &es);
+		if (red == NULL)
+			return (0);
+		free(temp);
+		free_red(red);
 		i++;
 	}
+	return (1);
 }
 
-// int	check_token_err(char **cmds)
-// {
-// 	t_redtools	*red;
-// 	char		*temp;
-// 	int			i;
+void	run_pipes(t_maintools *tools)
+{
+	int		i;
+	int		pipefd[2];
+	int		prev_fd = -1;
+	pid_t	pid;
+	int		status;
+	int		num_cmds;
 
-// 	i = 0;
-// 	while (cmds[i] != NULL)
-// 	{
-// 		temp = ft_strdup(cmds[i]);
-// 		red = red_after_cmd(&temp);
-// 		if (red == NULL)
-// 			return (0);
-// 		free(temp);
-// 		free_red(red);
-// 		i++;
-// 	}
-// 	return (1);
-// }
+	i = 0;
+	tools->cmds = parse_pipe(tools->str);
+	if (tools->cmds == NULL)
+		return;
+	if (check_token_err(tools->cmds) == 0)
+		return;
+
+	num_cmds = 0;
+	while (tools->cmds[num_cmds] != NULL)
+		num_cmds++;
+	while (tools->cmds[i] != NULL)
+	{
+		if (i < num_cmds - 1)
+		{
+			if (pipe(pipefd) == -1)
+			{
+				perror("pipe");
+				return;
+			}
+		}
+		pid = fork();
+		if (pid == -1)
+		{
+			perror("fork");
+			return;
+		}
+
+		if (pid == 0)
+		{
+			if (i > 0)
+			{
+				dup2(prev_fd, STDIN_FILENO);
+				close(prev_fd);
+			}
+			if (i < num_cmds - 1)
+			{
+				dup2(pipefd[1], STDOUT_FILENO);
+				close(pipefd[0]);
+				close(pipefd[1]);
+			}
+			tools->str = tools->cmds[i];
+			run_one_cmd(tools);
+			exit(EXIT_SUCCESS);
+		}
+		else
+		{
+			if (i > 0)
+				close(prev_fd);
+			if (i < num_cmds - 1)
+			{
+				close(pipefd[1]);
+				prev_fd = pipefd[0];
+			}
+		}
+		i++;
+	}
+	i = 0;
+	while (i < num_cmds)
+	{
+		wait(&status);
+		i++;
+	}
+	if (prev_fd != -1)
+		close(prev_fd);
+}
 
 // int	main(void)
 // {
@@ -172,4 +221,25 @@ void 	run_pipes(t_maintools *tools)
 // 	printf("%d\n\n",  check_token_err(cmds));
 	
 // 	return 0;
+// }
+
+// void	run_pipe(t_maintools *tools)
+// {
+	
+// }
+
+// void 	run_pipes(t_maintools *tools)
+// {
+// 	int		i;
+// 	char	**cmds;
+
+// 	i = 0;
+// 	cmds = parse_pipe(tools->str);
+// 	free(tools->str);
+// 	while (cmds[i] != NULL)
+// 	{
+// 		tools->str = cmds[i];
+// 		run_pipe(tools);
+// 		i++;
+// 	}
 // }
