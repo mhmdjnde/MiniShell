@@ -43,10 +43,10 @@ int	shlvl_func(int *lvl, char **str, char **new_lvl_str, char ***args)
 
 void	inc_shlvl(char ***ex, char ***en)
 {
-	int		lvl;
-	char	*new_lvl_str;
-	char	*str;
-	t_maintools t_tools;
+	int			lvl;
+	char		*new_lvl_str;
+	char		*str;
+	t_maintools	t_tools;
 
 	t_tools.strs = malloc(3 * sizeof(char *));
 	if (!t_tools.strs)

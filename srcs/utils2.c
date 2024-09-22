@@ -177,20 +177,13 @@ void	without_q_ret(int *i, char *str, char **result, int *j)
 
 void	wq_helper(int *i, char *str, char **result, int *j)
 {
-	// int	qf;
-
-	// qf = 0;
 	if (str[*i] == '"')
 	{
-		// qf = 1;
 		without_2q_ret(i, str, result, j);
-		// qf = 0;
 	}
 	else if (str[*i] == '\'')
 	{
-		// qf = 2;
 		without_q_ret(i, str, result, j);
-		// qf = 0;
 	}
 	else
 	{

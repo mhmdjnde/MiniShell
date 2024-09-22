@@ -113,10 +113,7 @@ void	exit_args_check(char **args, int *exit_status)
 	while (args[ac] != NULL)
 		ac++;
 	if (ac > 2)
-	{
-		write(2, "too many arguments\n", 17);
-		*exit_status = 1;
-	}
+		print_and_exit_status(exit_status);
 	else if (ac == 2)
 	{
 		while (args[1][i] != '\0')
@@ -131,4 +128,10 @@ void	exit_args_check(char **args, int *exit_status)
 				i++;
 		}
 	}
+}
+
+void	print_and_exit_status(int *exit_status)
+{
+	write(2, "too many arguments\n", 17);
+	*exit_status = 1;
 }

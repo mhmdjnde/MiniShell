@@ -29,19 +29,12 @@ int	check_red1(char *str, int i, char cr, char c)
 {
 	if (redname_check(str, i) == 0)
 	{
-		write(2,  "minishell: syntax error near unexpected token `", 37);
-		write(2, &cr, 1);
-		write(2,  "'\n", 2);
-
-		// printf("syntax error near %c\n", cr);
+		print_cr(cr);
 		return (-4);
 	}
 	if ((cr == '>' && str[i] == '<') || (cr == '<' && str[i] == '>'))
 	{
-		write(2,  "minishell: syntax error near unexpected token `", 37);
-		write(2, &cr, 1);
-		write(2,  "'", 1);
-		// printf("syntax error near %c\n", cr);
+		print_cr(cr);
 		return (-1);
 	}
 	if (c == 1 && str[i] != '\0')
@@ -65,19 +58,17 @@ int	check_red2(char *str, int i, char cr, char c)
 {
 	if (c == 3)
 	{
-		write(2,  "minishell: syntax error near unexpected token `", 37);
+		write(2, "minishell: syntax error near unexpected token `", 37);
 		write(2, &cr, 1);
-		write(2,  "'", 1);
-		// printf("syntax error near %c\n", cr);
+		write(2, "'\n", 2);
 		return (-2);
 	}
 	if (c > 3)
 	{
-		write(2,  "minishell: syntax error near unexpected token `", 37);
+		write(2, "minishell: syntax error near unexpected token `", 37);
 		write(2, &cr, 1);
 		write(2, &cr, 1);
-		write(2,  "'", 1);
-		// printf("syntax error near %c%c\n", cr, cr);
+		write(2, "'\n", 2);
 		return (-3);
 	}
 	if (str[i] == '\0')
@@ -229,10 +220,7 @@ int	red_loop(t_redmain *r, char **str, int *exit_status)
 	r->rf = 1;
 	r->check = check_red((*str) + r->tab[0]);
 	if (r->check <= 0)
-	{
-		*exit_status = 2;
-		return (0);
-	}
+		return (edit_red_ext(exit_status));
 	if (r->check == 1 || r->check == 2)
 		r->tab[0]++;
 	else
@@ -300,9 +288,7 @@ t_redtools	*red_after_cmd(char **str, int *exit_status)
 	t_redmain	r;
 	int			t;
 
-	r.tab = malloc(3 * sizeof(int));
-	r.tab[0] = 0;
-	r.tab[2] = 0;
+	r.tab = init_rtab();
 	r.rf = -1;
 	r.red = malloc((red_count(*str) + 1) * sizeof(t_redtools));
 	while ((*str)[r.tab[0]] != '\0' && (*str)[r.tab[0]] == ' ')
@@ -397,8 +383,6 @@ int	red_func_loop(t_redtools *red, int **fd, int *i, int **inout)
 		{
 			ft_putstr_fd(red[*i].file, 2);
 			write(2, ": No such file or directory\n", 28);
-
-			// printf("%s no such file or directory\n", red[*i].file);
 			free((*fd));
 			return (1);
 		}
@@ -434,12 +418,8 @@ int	*func_red(t_redtools *red, int *exit_status)
 	int	t;
 
 	i = 0;
-	inout = malloc(2 * sizeof(int));
-	inout[0] = -1;
-	inout[1] = -1;
-	fd = malloc(2 * sizeof(int));
-	fd[0] = -1;
-	fd[1] = -1;
+	inout = init_int_tab();
+	fd = init_int_tab();
 	while (red[i].file != NULL)
 	{
 		t = red_func_loop(red, &fd, &i, &inout);
@@ -456,6 +436,39 @@ int	*func_red(t_redtools *red, int *exit_status)
 	if (t == 0)
 		return (free(inout), NULL);
 	return (free(inout), fd);
+}
+
+int	*init_int_tab(void)
+{
+	int	*tab;
+
+	tab = malloc(2 * sizeof(int));
+	tab[0] = -1;
+	tab[1] = -1;
+	return (tab);
+}
+
+int	*init_rtab(void)
+{
+	int	*rtab;
+
+	rtab = malloc(3 * sizeof(int));
+	rtab[0] = 0;
+	rtab[2] = 0;
+	return (rtab);
+}
+
+int	edit_red_ext(int *exit_status)
+{
+	*exit_status = 2;
+	return (0);
+}
+
+void	print_cr(char cr)
+{
+	write(2, "minishell: syntax error near unexpected token `", 37);
+	write(2, &cr, 1);
+	write(2, "'\n", 2);
 }
 
 // int	main()

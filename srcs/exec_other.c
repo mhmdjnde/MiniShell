@@ -58,38 +58,35 @@ char	*get_cmd(char *str)
 	return (temp);
 }
 
-int execute_command(char *cmd_path, char **args, char **env, int f, int *exit_status)
+int	execute_command(char *cmd_path, t_check_ve *vars, int *exit_status)
 {
-    int pid;
-    int status;
-    pid = fork();
-    if (pid == -1)
-    {
-        write(2, "Error forking: ", 15);
-        write(2, strerror(errno), ft_strlen(strerror(errno)));
-        write(2, "\n", 1);
-        return (-1);
-    }
-    else if (pid == 0)
-    {
-        execve(cmd_path, args, env);
-        write(2, "Error executing command: ", 25);
-        write(2, strerror(errno), ft_strlen(strerror(errno)));
-        write(2, "\n", 1);
-        exit(EXIT_FAILURE);
-    }
-    else
-    {
-        ignore_signals();
-        waitpid(pid, &status, 0);
-        restore_signals();
-        if (f != 1)
+	int	pid;
+	int	status;
+
+	pid = fork();
+	if (pid == -1)
+	{
+		print_error("Error forking: ");
+		return (-1);
+	}
+	else if (pid == 0)
+	{
+		execve(cmd_path, vars->args, vars->env);
+		print_error("Error executing command: ");
+		exit(EXIT_FAILURE);
+	}
+	else
+	{
+		ignore_signals();
+		waitpid(pid, &status, 0);
+		restore_signals();
+		if (vars->f != 1)
 			*exit_status = status >> 8;
-        return (*exit_status);
-    }
+		return (*exit_status);
+	}
 }
 
-int	check_absolute_path(char **args, char **env, int *flag, int f, int *exit_status)
+int	check_absolute_path(char **args, t_check_ve *vars, int *exit_status)
 {
 	struct stat	sb;
 
@@ -98,15 +95,15 @@ int	check_absolute_path(char **args, char **env, int *flag, int f, int *exit_sta
 		if (stat(args[0], &sb) == 0)
 		{
 			if ((sb.st_mode & S_IFMT) == S_IFDIR
-				&& print_in_chek_absolute_dir(args, f, exit_status) == 0)
+				&& print_in_chek_absolute_dir(vars->args, vars->f, exit_status) == 0)
 				return (-1);
 			else if (access(args[0], X_OK) == 0)
 			{
-				*flag = 1;
-				return (execute_command(args[0], args, env, f, exit_status));
+				vars->flag = 1;
+				return (execute_command(args[0], vars, exit_status));
 			}
 			else
-				return (print_in_chek_absolute_denied(args, f, exit_status));
+				return (print_in_chek_absolute_denied(vars->args, vars->f, exit_status));
 		}
 		else
 			return (print_in_chek_absolute_no_file(args));
@@ -132,6 +129,7 @@ char	*construct_command_path(t_check_ve *vars, char *cmd)
 	if (dir_len > 0 && vars->dir[dir_len - 1] != '/')
 		strcat(cmd_path, "/");
 	strcat(cmd_path, cmd);
+	free(vars->dir);
 	return (cmd_path);
 }
 
@@ -139,7 +137,8 @@ int	check_ve(char **args, char **env, int f, int *exit_status)
 {
 	t_check_ve	vars;
 
-	init_vars(&vars, args, env, f, exit_status);
+	init_vars2(&vars, f, args, env);
+	init_vars(&vars, exit_status);
 	if (vars.result != 0)
 		return (vars.result);
 	if (vars.path == NULL)
@@ -151,11 +150,10 @@ int	check_ve(char **args, char **env, int f, int *exit_status)
 		if (vars.dir == NULL)
 			return (-1);
 		vars.cmd_path = construct_command_path(&vars, args[0]);
-		free(vars.dir);
 		if (vars.cmd_path == NULL)
 			return (-1);
 		if (access(vars.cmd_path, X_OK) == 0)
-			return (returned_status(&vars, args, env, f, exit_status));
+			return (returned_status(&vars, exit_status));
 		free(vars.cmd_path);
 		increment_i(&vars);
 	}
@@ -173,22 +171,29 @@ void	print_in_checkve(char **args, int f, int *exit_status)
 	write(2, " command not found\n", 19);
 }
 
-void	init_vars(t_check_ve *vars, char **args, char **env, int f, int *exit_status)
+void	init_vars2(t_check_ve *vars, int f, char **args, char **env)
+{
+	vars->f = f;
+	vars->args = args;
+	vars->env = env;
+}
+
+void	init_vars(t_check_ve *vars, int *exit_status)
 {
 	vars->flag = 0;
 	vars->result = 0;
-	vars->result = check_absolute_path(args, env, &vars->flag, f, exit_status);
+	vars->result = check_absolute_path(vars->args, vars, exit_status);
 	vars->i = 0;
 	vars->status = 0;
 	vars->dir_len = 0;
 	vars->path = NULL;
 	vars->cmd_path = NULL;
 	vars->dir = NULL;
-	vars->path = env_search("PATH", env);
+	vars->path = env_search("PATH", vars->env);
 	if (vars->path == NULL)
 	{
 		write(2, "bash: ", 6);
-		ft_putstr_fd(args[0], 2);
+		ft_putstr_fd(vars->args[0], 2);
 		write(2, "No such file or directory\n", 26);
 		return ;
 	}
@@ -220,9 +225,9 @@ void	increment_i(t_check_ve *vars)
 		vars->i += vars->dir_len;
 }
 
-int	returned_status(t_check_ve *vars, char **args, char **env, int f, int *exit_status)
+int	returned_status(t_check_ve *vars, int *exit_status)
 {
-	vars->status = execute_command(vars->cmd_path, args, env, f, exit_status);
+	vars->status = execute_command(vars->cmd_path, vars, exit_status);
 	free(vars->cmd_path);
 	return (vars->status);
 }
@@ -253,4 +258,17 @@ int	print_in_chek_absolute_no_file(char **args)
 	without_quotes(args[0], 0);
 	write(2, ": No such file or directory\n", 28);
 	return (-1);
+}
+
+void	free_2charpointers(char *dir, char	*cmd_path)
+{
+	free(dir);
+	free(cmd_path);
+}
+
+void	print_error(char *error)
+{
+	write(2, error, ft_strlen(error));
+	write(2, strerror(errno), ft_strlen(strerror(errno)));
+	write(2, "\n", 1);
 }

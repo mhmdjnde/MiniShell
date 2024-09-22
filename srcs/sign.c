@@ -12,7 +12,7 @@
 
 #include "minishell.h"
 
-struct sigaction	sa;
+struct sigaction	g_sa;
 
 void	handle_sigint(int sig)
 {
@@ -25,25 +25,25 @@ void	handle_sigint(int sig)
 
 void	setup_signals(void)
 {
-	sa.sa_handler = handle_sigint;
-	sigemptyset(&sa.sa_mask);
-	sa.sa_flags = SA_RESTART;
-	sigaction(SIGINT, &sa, NULL);
+	g_sa.sa_handler = handle_sigint;
+	sigemptyset(&g_sa.sa_mask);
+	g_sa.sa_flags = SA_RESTART;
+	sigaction(SIGINT, &g_sa, NULL);
 	signal(SIGQUIT, SIG_IGN);
 }
 
-void ignore_signals(void)
+void	ignore_signals(void)
 {
-    sa.sa_handler = SIG_IGN;
-    sigemptyset(&sa.sa_mask);
-    sa.sa_flags = SA_RESTART;
-    sigaction(SIGINT, &sa, NULL);
+	g_sa.sa_handler = SIG_IGN;
+	sigemptyset(&g_sa.sa_mask);
+	g_sa.sa_flags = SA_RESTART;
+	sigaction(SIGINT, &g_sa, NULL);
 }
 
-void restore_signals(void)
+void	restore_signals(void)
 {
-    sa.sa_handler = handle_sigint;
-    sigemptyset(&sa.sa_mask);
-    sa.sa_flags = SA_RESTART;
-    sigaction(SIGINT, &sa, NULL);
+	g_sa.sa_handler = handle_sigint;
+	sigemptyset(&g_sa.sa_mask);
+	g_sa.sa_flags = SA_RESTART;
+	sigaction(SIGINT, &g_sa, NULL);
 }

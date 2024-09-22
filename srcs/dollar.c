@@ -61,9 +61,9 @@ void	var_ret_helper1(char *str, int *i, int *double_quotes)
 char	*dlr_qm(char *str, int *i)
 {
 	if (str[*i - 1] == '$')
-		return("$$");
+		return ("$$");
 	else
-		return("$?");
+		return ("$?");
 }
 
 char	*helper3(char *str, int *i, int *index)
@@ -79,8 +79,7 @@ char	*helper3(char *str, int *i, int *index)
 		{
 			if (str[*i + 1] == '$' || str[*i + 1] == '?')
 			{
-				*i += 2;
-				t = dlr_qm(str, i);
+				t = increment_in_helper3(i, str);
 				if (t != NULL)
 					return (t);
 			}
@@ -110,7 +109,7 @@ char	*var_ret(char *str, int *i)
 	else if (ft_strcmp(t, "$$") == 0)
 		return ("dbldlr");
 	else if (ft_strcmp(t, "$?") == 0)
-		return  ("dlrqm");
+		return ("dlrqm");
 	if (index[0] == -1 || index[0] == index[1])
 		return (NULL);
 	temp = (char *)malloc((index[1] - index[0] + 1) * sizeof(char));
@@ -192,18 +191,18 @@ void	double_dlr(int *start, int *i, int *end, char **str)
 	free(env_value);
 }
 
-void	dollar_qm(int *start, int *i, int *end, char **str, int *exit_status)
+void	dollar_qm(int tab[3], char **str, int *exit_status)
 {
 	char	*env_value;
 
 	env_value = ft_itoa(*exit_status);
-	*start = *i - 2;
-	*end = *i;
-	edit_str(str, *start, *end, env_value);
+	tab[1] = tab[0] - 2;
+	tab[2] = tab[0];
+	edit_str(str, tab[1], tab[2], env_value);
 	if (env_value)
-		*i = *start + ft_strlen(env_value);
+		tab[0] = tab[1] + ft_strlen(env_value);
 	else
-		*i = *start;
+		tab[0] = tab[1];
 	free(env_value);
 }
 
@@ -219,29 +218,33 @@ void	var_in_env(char **str, char **env, int *exit_status)
 {
 	char	*var_name;
 	char	*env_value;
-	int		i;
-	int		start;
-	int		end;
+	int		tab[3];
 
-	i = 0;
-	while ((*str)[i] != '\0')
+	tab[0] = 0;
+	while ((*str)[tab[0]] != '\0')
 	{
-		var_name = var_ret(*str, &i);
+		var_name = var_ret(*str, &tab[0]);
 		if (var_name)
 		{
 			if (ft_strcmp(var_name, "dbldlr") == 0)
-				double_dlr(&start, &i, &end, str);
+				double_dlr(&tab[1], &tab[0], &tab[2], str);
 			else if (ft_strcmp(var_name, "dlrqm") == 0)
-				dollar_qm(&start, &i, &end, str, exit_status);
+				dollar_qm(tab, str, exit_status);
 			else
 			{
 				env_value = env_search(var_name, env);
-				start = i - strlen(var_name) - 1;
-				end = i;
-				edit_str(str, start, end, env_value);
-				restart_i(&i, env_value, start);
+				tab[1] = tab[0] - strlen(var_name) - 1;
+				tab[2] = tab[0];
+				edit_str(str, tab[1], tab[2], env_value);
+				restart_i(&tab[0], env_value, tab[1]);
 				free(var_name);
 			}
 		}
 	}
+}
+
+char	*increment_in_helper3(int *i, char *str)
+{
+	*i += 2;
+	return (dlr_qm(str, i));
 }

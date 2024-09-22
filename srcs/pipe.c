@@ -65,54 +65,74 @@ int	pipe_count(char *str)
 	return (c);
 }
 
+void	ini_pipe(int *i, int **tab, char *str, char ***cmds)
+{
+	*i = 0;
+	(*tab)[1] = 0;
+	*cmds = malloc((pipe_count(str) + 2) * sizeof(char *));
+	while (str[*i] != '\0' && str[*i] == ' ')
+		(*i)++;
+	if (str[*i] == '|')
+	{
+		printf("bash: syntax error near unexpected token `|'\n");
+		free(*cmds);
+		*cmds = NULL;
+	}
+	(*tab)[0] = *i;
+}
+
+int	fill_cmds(char *str, int *i, int **tab, char ***cmds)
+{
+	if (check_after_pipe(str + *i + 1) == -1)
+	{
+		printf("bash: syntax error near unexpected token `|'\n");
+		return (0);
+	}
+	(*cmds)[(*tab)[1]++] = ft_substr(str, (*tab)[0], *i - (*tab)[0]);
+	(*i)++;
+	while (str[*i] != '\0' && str[*i] == ' ')
+		(*i)++;
+	(*tab)[0] = *i;
+	return (1);
+}
+
+void	p_q(int *i, char *str)
+{
+	char	q;
+
+	q = str[*i];
+	(*i)++;
+	while (str[*i] != q && str[*i] != '\0')
+		(*i)++;
+	if (str[*i] == q)
+		(*i)++;
+}
+
 char	**parse_pipe(char *str)
 {
 	int		i;
-	char	q;
 	char	**cmds;
-	int		j;
-	int		k;
+	int		*tab;
 
-	i = 0;
-	k = 0;
-	cmds = malloc((pipe_count(str) + 2) * sizeof(char *));
-	while (str[i] != '\0' && str[i] == ' ')
-		i++;
-	if (str[i] == '|')
-	{
-		printf("bash: syntax error near unexpected token `|'\n");
+	tab = malloc(2 * sizeof(int));
+	cmds = NULL;
+	ini_pipe(&i, &tab, str, &cmds);
+	if (cmds == NULL)
 		return (NULL);
-	}
-	j = i;
 	while (str[i] != '\0')
 	{
 		if (str[i] == '"' || str[i] == '\'')
-		{
-			q = str[i];
-			i++;
-			while (str[i] != q && str[i] != '\0')
-				i++;
-			if (str[i] == q)
-				i++;
-		}
+			p_q(&i, str);
 		else if (str[i] == '|')
 		{
-			if (check_after_pipe(str + i + 1) == -1)
-			{
-				printf("bash: syntax error near unexpected token `|'\n");
+			if (fill_cmds(str, &i, &tab, &cmds) == 0)
 				return (NULL);
-			}
-			cmds[k++] = ft_substr(str, j, i - j);
-			i++;
-			while (str[i] != '\0' && str[i] == ' ')
-				i++;
-			j = i;
 		}
 		else
 			i++;
 	}
-	cmds[k] = ft_substr(str, j, i - j);
-	cmds[k + 1] = NULL;
+	cmds[tab[1]] = ft_substr(str, tab[0], i - tab[0]);
+	cmds[tab[1] + 1] = NULL;
 	return (cmds);
 }
 
@@ -138,79 +158,92 @@ int	check_token_err(char **cmds)
 	return (1);
 }
 
+int	pipe_fork(t_pipetools *pt)
+{
+	if (pt->i < pt->num_cmds - 1)
+	{
+		if (pipe(pt->pipefd) == -1)
+		{
+			perror("pipe");
+			return (0);
+		}
+	}
+	pt->pid = fork();
+	if (pt->pid == -1)
+	{
+		perror("fork");
+		return (0);
+	}
+	return (1);
+}
+
+void	pipe_func(t_pipetools *pt, t_maintools *tools)
+{
+	if (pt->i > 0)
+	{
+		dup2(pt->prev_fd, STDIN_FILENO);
+		close(pt->prev_fd);
+	}
+	if (pt->i < pt->num_cmds - 1)
+	{
+		dup2(pt->pipefd[1], STDOUT_FILENO);
+		close(pt->pipefd[0]);
+		close(pt->pipefd[1]);
+	}
+	tools->str = tools->cmds[pt->i];
+	run_one_cmd(tools);
+}
+
+int	pipe_main(t_pipetools *pt, t_maintools *tools)
+{
+	while (tools->cmds[pt->num_cmds] != NULL)
+		pt->num_cmds++;
+	while (tools->cmds[pt->i] != NULL)
+	{
+		if (pipe_fork(pt) == 0)
+			return 0;
+		if (pt->pid == 0)
+		{
+			pipe_func(pt, tools);
+			exit(EXIT_SUCCESS);
+		}
+		else
+		{
+			if (pt->i > 0)
+				close(pt->prev_fd);
+			if (pt->i < pt->num_cmds - 1)
+			{
+				close(pt->pipefd[1]);
+				pt->prev_fd = pt->pipefd[0];
+			}
+		}
+		pt->i++;
+	}
+	return (1);
+}
+
 void	run_pipes(t_maintools *tools)
 {
-	int		i;
-	int		pipefd[2];
-	int		prev_fd = -1;
-	pid_t	pid;
-	int		status;
-	int		num_cmds;
+	t_pipetools pt;
 
-	i = 0;
+	pt.i = 0;
+	pt.prev_fd = -1;
 	tools->cmds = parse_pipe(tools->str);
 	if (tools->cmds == NULL)
 		return;
 	if (check_token_err(tools->cmds) == 0)
 		return;
-
-	num_cmds = 0;
-	while (tools->cmds[num_cmds] != NULL)
-		num_cmds++;
-	while (tools->cmds[i] != NULL)
+	pt.num_cmds = 0;
+	if (pipe_main(&pt, tools) == 0)
+		return ;
+	pt.i = 0;
+	while (pt.i < pt.num_cmds)
 	{
-		if (i < num_cmds - 1)
-		{
-			if (pipe(pipefd) == -1)
-			{
-				perror("pipe");
-				return;
-			}
-		}
-		pid = fork();
-		if (pid == -1)
-		{
-			perror("fork");
-			return;
-		}
-
-		if (pid == 0)
-		{
-			if (i > 0)
-			{
-				dup2(prev_fd, STDIN_FILENO);
-				close(prev_fd);
-			}
-			if (i < num_cmds - 1)
-			{
-				dup2(pipefd[1], STDOUT_FILENO);
-				close(pipefd[0]);
-				close(pipefd[1]);
-			}
-			tools->str = tools->cmds[i];
-			run_one_cmd(tools);
-			exit(EXIT_SUCCESS);
-		}
-		else
-		{
-			if (i > 0)
-				close(prev_fd);
-			if (i < num_cmds - 1)
-			{
-				close(pipefd[1]);
-				prev_fd = pipefd[0];
-			}
-		}
-		i++;
+		wait(&pt.status);
+		pt.i++;
 	}
-	i = 0;
-	while (i < num_cmds)
-	{
-		wait(&status);
-		i++;
-	}
-	if (prev_fd != -1)
-		close(prev_fd);
+	if (pt.prev_fd != -1)
+		close(pt.prev_fd);
 }
 
 // int	main(void)

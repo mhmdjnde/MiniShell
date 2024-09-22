@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/05 17:28:20 by fdahouk           #+#    #+#             */
-/*   Updated: 2024/09/21 18:55:46 by marvin           ###   ########.fr       */
+/*   Updated: 2024/09/21 01:10:08 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,7 +91,6 @@ void	func_add_exp(int i, char ***en, char **args, char ***ex)
 	{
 		ft_putstr_fd(args[i], 2);
 		write(2, "not valid idenfier\n", 19);
-		// printf("%s: not a valid identifier\n", args[i]);
 	}
 	else
 	{
@@ -109,68 +108,91 @@ void	func_add_exp(int i, char ***en, char **args, char ***ex)
 
 void	add_exp(t_maintools *tools, char ***ex, char ***en, int sf)
 {
-	int		i;
+	int		tab[2];
 	char	*temp;
-	int		f;
 
-	i = 1;
-	f = 0;
-	while ((tools->strs)[i] != NULL)
+	tab[0] = 1;
+	tab[1] = 0;
+	while ((tools->strs)[tab[0]] != NULL)
 	{
-		temp = without_quotes_ret((tools->strs)[i], 0);
-		free((tools->strs)[i]);
-		(tools->strs)[i] = temp;
-		if (!exp_arg_check((tools->strs)[i]))
-		{
-			if ((tools->strs)[i][0] == '-')
-			{
-				write(2, "invalid option\n", 15);
-				ft_putstr_fd((tools->strs)[i], 2);
-				// printf("%s: invalid option\n", (tools->strs)[i]);
-				tools->exit_status = 2;
-				f = 1;
-			}
-			else
-			{
-				write(2, "not valid idenfier\n", 19);
-				ft_putstr_fd((tools->strs)[i], 2);
-				// printf("%s: not a valid identifier\n", (tools->strs)[i]);
-				tools->exit_status = 1;
-				f = 1;
-			}
-		}
+		temp = without_quotes_ret((tools->strs)[tab[0]], 0);
+		free((tools->strs)[tab[0]]);
+		(tools->strs)[tab[0]] = temp;
+		if (!exp_arg_check((tools->strs)[tab[0]]))
+			check_if_minus(tools, tab);
 		else
 		{
-			if (check_equal((tools->strs)[i]) == -1)
+			if (check_equal((tools->strs)[tab[0]]) == -1)
 			{
-				if (ret_s_index((tools->strs)[i], *ex) == -1)
-					*ex = export_enc(*ex, (tools->strs)[i]);
+				if (ret_s_index((tools->strs)[tab[0]], *ex) == -1)
+					*ex = export_enc(*ex, (tools->strs)[tab[0]]);
 			}
 			else
-				func_add_exp(i, en, (tools->strs), ex);
+				func_add_exp(tab[0], en, (tools->strs), ex);
 		}
-		i++;
+		tab[0]++;
 	}
-	if (f == 0 && sf == 0)
-		tools->exit_status = 0;
+	edited_exit_status(tools, tab[1], sf);
 }
 
-void	edit_pwd(char ***ex, char ***en)
+void	edit_pwd(char ***ex, char ***en, t_maintools *tools)
 {
-	char	*pwd;
-	t_maintools t_tools;
+	char		*pwd;
+	t_maintools	t_tools;
+	static int	f;
+	int			t;
 
-	pwd = getcwd(NULL, 0);
-	if (pwd == NULL)
-		return ;
-	t_tools.strs = malloc(3 * sizeof(char *));
-	t_tools.strs[0] = malloc(5);
-	ft_strcpy(t_tools.strs[0], "jnde");
-	t_tools.strs[1] = malloc(5 + ft_strlen(pwd) + 1);
-	ft_strcpy(t_tools.strs[1], "PWD=");
-	strncat(t_tools.strs[1], pwd, ft_strlen(pwd));
-	t_tools.strs[2] = NULL;
-	add_exp(&t_tools, ex, en, 1);
-	free(pwd);
-	free_args(&t_tools.strs);
+	t = 0;
+	if (ret_s_index("PWD", *ex) != -1)
+	{
+		pwd = getcwd(NULL, 0);
+		if (pwd == NULL)
+			return ;
+		t_tools.strs = malloc(3 * sizeof(char *));
+		t_tools.strs[0] = malloc(5);
+		ft_strcpy(t_tools.strs[0], "jnde");
+		t_tools.strs[1] = malloc(5 + ft_strlen(pwd) + 1);
+		ft_strcpy(t_tools.strs[1], "PWD=");
+		strncat(t_tools.strs[1], pwd, ft_strlen(pwd));
+		t_tools.strs[2] = NULL;
+		add_exp(&t_tools, ex, en, 1);
+		free(pwd);
+		free_args(&t_tools.strs);
+		f = 0;
+	}
+	else
+	{
+		if (f != 1)
+		{
+			tools->cd = NULL;
+			t_tools.strs = malloc(3 * sizeof(char *));
+			t_tools.strs[0] = ft_strdup("jnde");
+			t_tools.strs[1] = ft_strdup("OLDPWD");
+			t_tools.strs[2] = NULL;
+			rm_exp(t_tools.strs, ex, en, &t);
+			add_exp(&t_tools, ex, en, 1);
+		}
+	}
+}
+
+int	p_exp_err(t_maintools *tools, int i, char *error, int ext)
+{
+	write(2, error, ft_strlen(error));
+	ft_putstr_fd((tools->strs)[i], 2);
+	tools->exit_status = ext;
+	return (1);
+}
+
+void	check_if_minus(t_maintools *tools, int tab[2])
+{
+	if ((tools->strs)[tab[0]][0] == '-')
+		tab[1] = p_exp_err(tools, tab[0], "invalid option\n", 1);
+	else
+		tab[1] = p_exp_err(tools, tab[0], "not valid idenfier\n", 1);
+}
+
+void	edited_exit_status(t_maintools *tools, int f, int sf)
+{
+	if (f == 0 && sf == 0)
+		tools->exit_status = 0;
 }

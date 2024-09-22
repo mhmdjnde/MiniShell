@@ -6,20 +6,44 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/27 19:07:27 by mjoundi           #+#    #+#             */
-/*   Updated: 2024/09/21 19:08:47 by marvin           ###   ########.fr       */
+/*   Updated: 2024/09/21 02:01:09 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-// int exit_status = 0;
+void	freee(t_maintools *tools)
+{
+	if (tools->tmp.fd)
+		free(tools->tmp.fd);
+	if (tools->str)
+		free(tools->str);
+	if (tools->strs)
+		free_args(&tools->strs);
+	if (tools->en)
+		free_args(&tools->en);
+	if (tools->ex)
+		free_args(&tools->ex);
+	if (tools->cd)
+		free(tools->cd);
+}
 
-// if (tools->in == -1 || tools->out == -1)
-// {
-// 	printf("Error: unable to duplicate file descriptors\n");
-// 	// free_all();
-// 	exit(1);
-// }
+int	is_num(char *str)
+{
+	int	i;
+
+	i = 0;
+	if (str[i] == '-' || str[i] == '+')
+		i++;
+	while (str[i] != '\0')
+	{
+		if (!(str[i] >= '0' && str[i] <= '9'))
+			return (0);
+		i++;
+	}
+	return (1);
+}
+
 void	ini_tools_1(t_maintools *tools, char **env)
 {
 	tools->out = dup(STDOUT_FILENO);
@@ -52,24 +76,65 @@ int	ini_loop(t_maintools *tools)
 	return (1);
 }
 
-int	check_before_run(t_maintools *tools)
+int	check_before_run(t_maintools *t)
 {
-	if (!valquotes(tools->str))
+	if (!valquotes(t->str))
 	{
 		write(2, "invalid quotes\n", 15);
-		free(tools->str);
-		tools->exit_status = 2;
+		free(t->str);
+		t->exit_status = 2;
 		return (0);
 	}
-	tools->tmp.fd = red_run(&tools->str, &tools->tmp, tools->en, &tools->exit_status);
-	if (tools->tmp.fd == NULL)
+	t->tmp.fd = red_run(&t->str, &t->tmp, t->en, &t->exit_status);
+	if (t->tmp.fd == NULL)
 	{
-		if (tools->tmp.tmp)
-			free(tools->tmp.tmp);
-		free(tools->str);
+		if (t->tmp.tmp)
+			free(t->tmp.tmp);
+		free(t->str);
 		return (0);
 	}
 	return (1);
+}
+
+void	print_in_cd(t_maintools *tools)
+{
+	write(2, "cd: ", 4);
+	ft_putstr_fd(env_search("HOME", tools->en), 2);
+	write(2, " No such file or directory\n", 26);
+	tools->exit_status = 1;
+}
+
+int	print_ext_free(t_maintools *tools)
+{
+	printf("exit\n");
+	freee(tools);
+	return (0);
+}
+
+void	print_ex_st(char **args, int *exit_status)
+{
+	write(2, "bash: exit: ", 12);
+	write(2, args[1], ft_strlen(args[1]));
+	write(2, ": numeric argument required\n", 25);
+	*exit_status = 2;
+}
+
+void	check_exit_status(char *temp, char **args, int *exit_status)
+{
+	long long	l;
+
+	l = 0;
+	if (!is_num(temp))
+		*exit_status = 2;
+	else
+	{
+		l = ft_atol(args[1]);
+		if (l <= 9223372036854775807LL && l >= -9223372036854775807LL - 1)
+			*exit_status = 1;
+		else
+			*exit_status = 2;
+	}
+	free(temp);
 }
 
 void	exitt(t_maintools *tools)
@@ -142,14 +207,7 @@ int	cd(t_maintools *tools)
 		if (chdir(env_search("HOME", tools->en)) == 0)
 			tools->cd = getcwd(NULL, 0);
 		else
-		{
-			write(2, "cd: ", 4);
-			ft_putstr_fd(env_search("HOME", tools->en), 2);
-			write(2, " No such file or directory\n", 26);
-			// printf("cd: %s : No such file or directory\n",
-			// 	env_search("HOME", tools->en));
-			tools->exit_status = 1;
-		}
+			print_in_cd(tools);
 		free(tools->str);
 		return (0);
 	}
@@ -165,7 +223,8 @@ void	unset(t_maintools *tools)
 	var_in_env(&tools->str, tools->en, &tools->exit_status);
 	tools->str = rm_bs(tools->str);
 	tools->strs = parse_args(tools->str, "unset");
-	rm_exp(tools->strs, &tools->ex, &tools->en);
+	rm_exp(tools->strs, &tools->ex, &tools->en, &tools->exit_status);
+
 	free_args(&tools->strs);
 }
 
@@ -196,43 +255,11 @@ void	clean(t_maintools *tools)
 {
 	del_temp(tools->tmp.tmp, tools->en);
 	fix_after_red(tools->in, tools->out, tools->tmp.fd);
-	edit_pwd(&tools->ex, &tools->en);
+	edit_pwd(&tools->ex, &tools->en, tools);
 	if (tools->str)
 		free(tools->str);
 	if (tools->tmp.fd)
 		free(tools->tmp.fd);
-}
-
-void	freee(t_maintools *tools)
-{
-	if (tools->tmp.fd)
-		free(tools->tmp.fd);
-	if (tools->str)
-		free(tools->str);
-	if (tools->strs)
-		free_args(&tools->strs);
-	if (tools->en)
-		free_args(&tools->en);
-	if (tools->ex)
-		free_args(&tools->ex);
-	if (tools->cd)
-		free(tools->cd);
-}
-
-int	is_num(char *str)
-{
-	int	i;
-
-	i = 0;
-	if (str[i] == '-' || str[i] == '+')
-		i++;
-	while(str[i] != '\0')
-	{
-		if (!(str[i] >= '0' && str[i] <= '9'))
-			return (0);
-		i++;
-	}
-	return (1);
 }
 
 void	ex_st(char **args, int *exit_status)
@@ -253,30 +280,14 @@ void	ex_st(char **args, int *exit_status)
 			if (l <= 9223372036854775807LL && l >= -9223372036854775807LL - 1)
 				*exit_status = l % 256;
 			else
-			{
-				write(2, "bash: exit: ", 12);
-				write(2, args[1], ft_strlen(args[1]));
-				write(2, ": numeric argument required\n", 25);
-				// printf("bash: exit: %s: numeric argument required", args[1]);
-				*exit_status = 2;
-			}
+				print_ex_st(args, exit_status);
 		}
 		free(temp);
 	}
 	else if (args_len(args) > 2)
 	{
 		temp = without_quotes_ret(args[1], 0);
-		if (!is_num(temp))
-			*exit_status = 2;
-		else
-		{
-			l = ft_atol(args[1]);
-			if (l <= 9223372036854775807LL && l >= -9223372036854775807LL - 1)
-				*exit_status = 1;
-			else
-				*exit_status = 2;
-		}
-		free(temp);
+		check_exit_status(temp, args, exit_status);
 	}
 }
 
@@ -305,7 +316,7 @@ int	main_main(t_maintools *tools)
 		unset(tools);
 	else
 		exec(tools);
-	// printf("%d\n\n", tools->exit_status); 
+	// printf("%d\n\n", tools->exit_status);
 	return (1);
 }
 
@@ -348,11 +359,7 @@ int	main(int ac, char **av, char **env)
 				break ;
 		}
 		else
-		{
 			run_pipes(&tools);
-		}
 	}
-	printf("exit\n");
-	freee(&tools);
-	return (0);
+	return (print_ext_free(&tools));
 }

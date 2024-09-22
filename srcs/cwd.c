@@ -25,23 +25,16 @@ void	get_pwd(char *str, int *exit_status)
 		if (temp[0] == '-')
 		{
 			write(2, "invalid flag\n", 13);
-			free(temp);
-			free_args(&args);
+			free_in_pwd(args, temp);
 			*exit_status = 2;
 			return ;
 		}
 		else
-		{
-			free(temp);
-			free_args(&args);
-		}
+			free_in_pwd(args, temp);
 	}
 	cwd = getcwd(NULL, 0);
 	if (cwd != NULL)
-	{
-		printf("%s\n", cwd);
-		free(cwd);
-	}
+		print_free_cwd(cwd);
 	*exit_status = 0;
 }
 
@@ -115,8 +108,18 @@ void	do_cd(char **env, char *str, char **old, int *exit_status)
 			*exit_status = 0;
 		}
 		else
-		{
 			no_file(str, current_dir, exit_status);
-		}
 	}
+}
+
+void	print_free_cwd(char *cwd)
+{
+	printf("%s\n", cwd);
+	free(cwd);
+}
+
+void	free_in_pwd(char **args, char *temp)
+{
+	free(temp);
+	free_args(&args);
 }
