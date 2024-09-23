@@ -32,7 +32,8 @@ int	empty(char *str)
 	while (str[i] != '\0')
 	{
 		if (str[i] != ' ' && str[i] != '\t'
-			&& str[i] != '\n' && str[i] != '\r')
+			&& str[i] != '\n' && str[i] != '\r'
+			&& str[i] != ':' && str[i] != '!')
 			return (0);
 		i++;
 	}

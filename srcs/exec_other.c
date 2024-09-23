@@ -238,7 +238,7 @@ int	print_in_chek_absolute_dir(char **args, int f, int *exit_status)
 	without_quotes(args[0], 0);
 	write(2, ": Is a directory\n", 17);
 	if (f != 1)
-		*exit_status = 127;
+		*exit_status = 126;
 	return (0);
 }
 

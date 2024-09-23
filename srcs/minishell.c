@@ -104,13 +104,6 @@ void	print_in_cd(t_maintools *tools)
 	tools->exit_status = 1;
 }
 
-int	print_ext_free(t_maintools *tools)
-{
-	printf("exit\n");
-	freee(tools);
-	return (0);
-}
-
 void	print_ex_st(char **args, int *exit_status)
 {
 	write(2, "bash: exit: ", 12);
@@ -173,6 +166,9 @@ void	echo(t_maintools *tools)
 
 void	export(t_maintools *tools)
 {
+	tools->str = rm_dl(tools->str);
+	var_in_env(&tools->str, tools->en, &tools->exit_status);
+	tools->str = rm_bs(tools->str);
 	if (count_args(tools->str, "export") == 0)
 	{
 		print_exp(tools->ex);
@@ -180,9 +176,6 @@ void	export(t_maintools *tools)
 	}
 	else
 	{
-		tools->str = rm_dl(tools->str);
-		var_in_env(&tools->str, tools->en, &tools->exit_status);
-		tools->str = rm_bs(tools->str);
 		tools->strs = parse_args(tools->str, "export");
 		add_exp(tools, &tools->ex, &tools->en, 0);
 		free_args(&tools->strs);
@@ -235,19 +228,22 @@ void	exec(t_maintools *tools)
 		tools->str = rm_dl(tools->str);
 		var_in_env(&tools->str, tools->en, &tools->exit_status);
 		tools->str = rm_bs(tools->str);
-		tools->temp = get_cmd(tools->str);
-		if (count_args(tools->str, tools->temp) != 0)
-			tools->strs = parse_args(tools->str, tools->temp);
-		else
+		if (!empty(tools->str))
 		{
-			tools->strs = malloc(2 * sizeof(char *));
-			tools->strs[0] = ft_strdup(tools->temp);
-			tools->strs[1] = NULL;
+			tools->temp = get_cmd(tools->str);
+			if (count_args(tools->str, tools->temp) != 0)
+				tools->strs = parse_args(tools->str, tools->temp);
+			else
+			{
+				tools->strs = malloc(2 * sizeof(char *));
+				tools->strs[0] = ft_strdup(tools->temp);
+				tools->strs[1] = NULL;
+			}
+			q_args(tools->strs);
+			check_ve(tools->strs, tools->en, 0, &tools->exit_status);
+			free_args(&tools->strs);
+			free(tools->temp);
 		}
-		q_args(tools->strs);
-		check_ve(tools->strs, tools->en, 0, &tools->exit_status);
-		free_args(&tools->strs);
-		free(tools->temp);
 	}
 }
 
@@ -297,7 +293,7 @@ int	main_main(t_maintools *tools)
 	{
 		exitt(tools);
 		ex_st(tools->strs, &tools->exit_status);
-		return (0);
+		return (-1);
 	}
 	else if (parse_cmd(tools->str, "echo") >= 0)
 		echo(tools);
@@ -316,7 +312,7 @@ int	main_main(t_maintools *tools)
 		unset(tools);
 	else
 		exec(tools);
-	// printf("%d\n\n", tools->exit_status);
+	printf("%d\n\n", tools->exit_status);
 	return (1);
 }
 
@@ -353,13 +349,20 @@ int	main(int ac, char **av, char **env)
 		if (pipe_check(tools.str) == 0)
 		{
 			test = run_one_cmd(&tools);
-			if (test == -1)
-				continue ;
-			else if (test == 2)
+			// if (test == -1)
+			// 	continue ;
+			if (test == 2)
 				break ;
 		}
 		else
+		{
 			run_pipes(&tools);
+			if (tools.cmds != NULL)
+				free_args(&tools.cmds);
+		}
 	}
-	return (print_ext_free(&tools));
+	if (test != 2)
+		printf("exit\n");
+	freee(&tools);
+	return (0);
 }

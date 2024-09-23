@@ -19,7 +19,7 @@ int	redname_check(char *str, int i)
 	j = i;
 	while (str[j] != '\0' && str[j] == ' ')
 		j++;
-	if (str[j] == '\0' || str[j] == '>' || str[j] == '<')
+	if (str[j] == '>' || str[j] == '<')
 		return (0);
 	else
 		return (1);
@@ -58,14 +58,14 @@ int	check_red2(char *str, int i, char cr, char c)
 {
 	if (c == 3)
 	{
-		write(2, "minishell: syntax error near unexpected token `", 37);
+		write(2, "minishell: syntax error near unexpected token `", 47);
 		write(2, &cr, 1);
 		write(2, "'\n", 2);
 		return (-2);
 	}
 	if (c > 3)
 	{
-		write(2, "minishell: syntax error near unexpected token `", 37);
+		write(2, "minishell: syntax error near unexpected token `", 47);
 		write(2, &cr, 1);
 		write(2, &cr, 1);
 		write(2, "'\n", 2);
@@ -466,7 +466,7 @@ int	edit_red_ext(int *exit_status)
 
 void	print_cr(char cr)
 {
-	write(2, "minishell: syntax error near unexpected token `", 37);
+	write(2, "minishell: syntax error near unexpected token `", 47);
 	write(2, &cr, 1);
 	write(2, "'\n", 2);
 }

@@ -118,7 +118,7 @@ char	**parse_pipe(char *str)
 	cmds = NULL;
 	ini_pipe(&i, &tab, str, &cmds);
 	if (cmds == NULL)
-		return (NULL);
+		return (free(tab), NULL);
 	while (str[i] != '\0')
 	{
 		if (str[i] == '"' || str[i] == '\'')
@@ -126,14 +126,18 @@ char	**parse_pipe(char *str)
 		else if (str[i] == '|')
 		{
 			if (fill_cmds(str, &i, &tab, &cmds) == 0)
-				return (NULL);
+			{
+				cmds[tab[1]] = NULL;
+				free_args(&cmds);
+				return (free(tab), NULL);
+			}
 		}
 		else
 			i++;
 	}
 	cmds[tab[1]] = ft_substr(str, tab[0], i - tab[0]);
 	cmds[tab[1] + 1] = NULL;
-	return (cmds);
+	return (free(tab), cmds);
 }
 
 int	check_token_err(char **cmds)
@@ -150,7 +154,7 @@ int	check_token_err(char **cmds)
 		temp = ft_strdup(cmds[i]);
 		red = red_after_cmd(&temp, &es);
 		if (red == NULL)
-			return (0);
+			return (free(temp), 0);
 		free(temp);
 		free_red(red);
 		i++;
@@ -229,10 +233,18 @@ void	run_pipes(t_maintools *tools)
 	pt.i = 0;
 	pt.prev_fd = -1;
 	tools->cmds = parse_pipe(tools->str);
+	free(tools->str);
 	if (tools->cmds == NULL)
+	{
+		tools->exit_status = 2;
 		return;
+	}
 	if (check_token_err(tools->cmds) == 0)
+	{
+		tools->exit_status = 2;
+		free_args(&tools->cmds);
 		return;
+	}
 	pt.num_cmds = 0;
 	if (pipe_main(&pt, tools) == 0)
 		return ;
