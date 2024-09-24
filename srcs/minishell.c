@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/27 19:07:27 by mjoundi           #+#    #+#             */
-/*   Updated: 2024/09/21 02:01:09 by marvin           ###   ########.fr       */
+/*   Updated: 2024/09/25 01:34:41 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,41 @@ int	is_num(char *str)
 	return (1);
 }
 
+int	event_check(char *str)
+{
+	int		i;
+	char	q;
+	char	*t;
+	int		j;
+
+	i = 0;
+	while (str[i] != '\0')
+	{
+		if (str[i] == '"' || str[i] == '\'')
+		{
+			q = str[i];
+			i++;
+			while (str[i] != '\0' && str[i] != q)
+				i++;
+		}
+		else if (str[i] == '!')
+		{
+			i++;
+			j = i;
+			while (str[i] != '\0' && is_ok(str[i]))
+				i++;
+			t = ft_substr(str, j, i - j);
+			ft_putstr_fd(t, 2);
+			write(2, " event not found\n", 17);
+			free(t);
+			return (0);
+		}
+		else
+			i++;
+	}
+	return (1);
+}
+
 void	ini_tools_1(t_maintools *tools, char **env)
 {
 	tools->out = dup(STDOUT_FILENO);
@@ -53,9 +88,12 @@ void	ini_tools_1(t_maintools *tools, char **env)
 	tools->cd = getcwd(NULL, 0);
 	tools->en = env_copy(env);
 	tools->ex = env_copy(env);
+	tools->cdf = 0;
 	exp_q(tools->ex);
 	sort_env(tools->ex, args_len(tools->ex));
 	inc_shlvl(&tools->ex, &tools->en);
+	edit_oldpwd(&tools->ex, &tools->en, tools);
+	add_pwd(&tools->ex, &tools->en);
 }
 
 int	ini_loop(t_maintools *tools)
@@ -63,6 +101,7 @@ int	ini_loop(t_maintools *tools)
 	tools->strs = NULL;
 	tools->tmp.fd = NULL;
 	tools->tmp.tmp = NULL;
+	tools->cdf = 0;
 	tools->str = readline("mjoundi > ");
 	if (!tools->str)
 		return (-1);
@@ -73,6 +112,11 @@ int	ini_loop(t_maintools *tools)
 	}
 	if (*tools->str)
 		add_history(tools->str);
+	if (event_check(tools->str) == 0)
+	{
+		free(tools->str);
+		return (0);
+	}
 	return (1);
 }
 
@@ -193,6 +237,7 @@ int	cd(t_maintools *tools)
 		write(2, "bash: cd: too many arguments\n", 29);
 		free(tools->str);
 		tools->exit_status = 1;
+		tools->cdf = 1;
 		return (0);
 	}
 	if (count_args(tools->str, "cd") == 0)
@@ -202,11 +247,13 @@ int	cd(t_maintools *tools)
 		else
 			print_in_cd(tools);
 		free(tools->str);
+		tools->cdf = 1;
 		return (0);
 	}
 	tools->strs = parse_args(tools->str, "cd");
 	do_cd(tools->en, tools->strs[1], &tools->cd, &tools->exit_status);
 	free_args(&tools->strs);
+	tools->cdf = 1;
 	return (1);
 }
 
@@ -251,6 +298,7 @@ void	clean(t_maintools *tools)
 {
 	del_temp(tools->tmp.tmp, tools->en);
 	fix_after_red(tools->in, tools->out, tools->tmp.fd);
+	edit_oldpwd(&tools->ex, &tools->en, tools);
 	edit_pwd(&tools->ex, &tools->en, tools);
 	if (tools->str)
 		free(tools->str);
@@ -302,7 +350,7 @@ int	main_main(t_maintools *tools)
 	else if (parse_cmd(tools->str, "export") >= 0)
 		export(tools);
 	else if (parse_cmd(tools->str, "pwd") >= 0)
-		get_pwd(tools->str, &tools->exit_status);
+		get_pwd(tools->str, &tools->exit_status, tools->ex);
 	else if (parse_cmd(tools->str, "cd") >= 0)
 	{
 		if (cd(tools) == 0)
@@ -342,6 +390,11 @@ int	main(int ac, char **av, char **env)
 	while (1)
 	{
 		test = ini_loop(&tools);
+		if (g_s == 2)
+		{
+			g_s = 0;
+			tools.exit_status = 130;	
+		}
 		if (test == -1)
 			break ;
 		else if (test == 0)

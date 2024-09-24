@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/05 17:28:20 by fdahouk           #+#    #+#             */
-/*   Updated: 2024/09/21 01:10:08 by marvin           ###   ########.fr       */
+/*   Updated: 2024/09/25 01:07:11 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,26 +82,28 @@ void	check_availble(int idx, char ***en, char **args, int i)
 	}
 }
 
-void	func_add_exp(int i, char ***en, char **args, char ***ex)
+void	func_add_exp(int i, char ***en, t_maintools *tools, char ***ex)
 {
 	char	*prefix;
 	int		idx;
 
-	if (check_equal(args[i]) == 0)
+	if (check_equal(tools->strs[i]) == 0)
 	{
-		ft_putstr_fd(args[i], 2);
-		write(2, "not valid idenfier\n", 19);
+		write(2, "Bash: export: ", 14);
+		ft_putstr_fd(tools->strs[i], 2);
+		write(2, " not valid idenfier\n", 20);
+		tools->exit_status = 1;
 	}
 	else
 	{
-		prefix = ret_to_equal(args[i]);
+		prefix = ret_to_equal(tools->strs[i]);
 		idx = ret_s_index(prefix, *en);
-		check_availble(idx, en, args, i);
+		check_availble(idx, en, tools->strs, i);
 		free(prefix);
-		args[i] = add_quotes(args[i]);
-		prefix = ret_to_equal(args[i]);
+		tools->strs[i] = add_quotes(tools->strs[i]);
+		prefix = ret_to_equal(tools->strs[i]);
 		idx = ret_s_index(prefix, *ex);
-		check_availble(idx, ex, args, i);
+		check_availble(idx, ex, tools->strs, i);
 		free(prefix);
 	}
 }
@@ -128,7 +130,7 @@ void	add_exp(t_maintools *tools, char ***ex, char ***en, int sf)
 					*ex = export_enc(*ex, (tools->strs)[tab[0]]);
 			}
 			else
-				func_add_exp(tab[0], en, (tools->strs), ex);
+				func_add_exp(tab[0], en, tools, ex);
 		}
 		tab[0]++;
 	}
@@ -162,7 +164,7 @@ void	edit_pwd(char ***ex, char ***en, t_maintools *tools)
 	}
 	else
 	{
-		if (f != 1)
+		if (f != 1 && tools->cdf == 1)
 		{
 			tools->cd = NULL;
 			t_tools.strs = malloc(3 * sizeof(char *));
@@ -173,6 +175,45 @@ void	edit_pwd(char ***ex, char ***en, t_maintools *tools)
 			add_exp(&t_tools, ex, en, 1);
 		}
 	}
+}
+
+void	add_pwd(char ***ex, char ***en)
+{
+	char		*pwd;
+	t_maintools	t_tools;
+
+	pwd = getcwd(NULL, 0);
+	if (pwd == NULL)
+		return ;
+	t_tools.strs = malloc(3 * sizeof(char *));
+	t_tools.strs[0] = malloc(5);
+	ft_strcpy(t_tools.strs[0], "jnde");
+	t_tools.strs[1] = malloc(5 + ft_strlen(pwd) + 1);
+	ft_strcpy(t_tools.strs[1], "PWD=");
+	strncat(t_tools.strs[1], pwd, ft_strlen(pwd));
+	t_tools.strs[2] = NULL;
+	add_exp(&t_tools, ex, en, 1);
+	free(pwd);
+	free_args(&t_tools.strs);
+}
+
+void	edit_oldpwd(char ***ex, char ***en, t_maintools *tools)
+{
+	char		*oldpwd;
+	t_maintools	t_tools;
+
+	oldpwd = tools->cd;
+	if (oldpwd == NULL)
+		return ;
+	t_tools.strs = malloc(3 * sizeof(char *));
+	t_tools.strs[0] = malloc(5);
+	ft_strcpy(t_tools.strs[0], "jnde");
+	t_tools.strs[1] = malloc(8 + ft_strlen(oldpwd) + 1);
+	ft_strcpy(t_tools.strs[1], "OLDPWD=");
+	strncat(t_tools.strs[1], oldpwd, ft_strlen(oldpwd));
+	t_tools.strs[2] = NULL;
+	add_exp(&t_tools, ex, en, 1);
+	free_args(&t_tools.strs);
 }
 
 int	p_exp_err(t_maintools *tools, int i, char *error, int ext)
@@ -186,9 +227,18 @@ int	p_exp_err(t_maintools *tools, int i, char *error, int ext)
 void	check_if_minus(t_maintools *tools, int tab[2])
 {
 	if ((tools->strs)[tab[0]][0] == '-')
+	{
 		tab[1] = p_exp_err(tools, tab[0], "invalid option\n", 1);
+		tools->exit_status = 2;
+	}
 	else
-		tab[1] = p_exp_err(tools, tab[0], "not valid idenfier\n", 1);
+	{
+		write(2, "Bash: export: ", 14);
+		ft_putstr_fd((tools->strs)[tab[0]], 2);
+		write(2, " not valid idenfier\n", 20);
+		tools->exit_status = 1;
+		tab[1] = 1;
+	}
 }
 
 void	edited_exit_status(t_maintools *tools, int f, int sf)

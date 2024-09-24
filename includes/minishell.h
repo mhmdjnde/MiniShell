@@ -27,6 +27,8 @@
 # include <sys/types.h>
 # include <sys/stat.h>
 
+extern int g_s;
+
 typedef struct s_redtools
 {
 	char	*file;
@@ -54,6 +56,7 @@ typedef struct s_maintools
 	t_tmptools	tmp;
 	int			exit_status;
 	char		**cmds;
+	int			cdf;
 }	t_maintools;
 
 typedef struct s_redmain
@@ -130,7 +133,7 @@ char		*rm_bs(char *str);
 void		print_exp(char **ex);
 char		**env_copy(char **env);
 void		sort_env(char **arr, int n);
-void		get_pwd(char *str, int *exit_status);
+void		get_pwd(char *str, int *exit_status, char **ex);
 char		*env_search(char *str, char **env);
 void		add_exp(t_maintools *tools, char ***ex, char ***en, int sf);
 void		do_cd(char **env, char *str, char **old, int *exit_status);
@@ -201,5 +204,8 @@ int 		edit_red_ext(int *exit_status);
 int 		*init_rtab(void);
 void		free_three(char *t, char *t2, char *t3);
 void		run_pipes(t_maintools *tools);
+char	*get_pwd2(char **env, int	*exit_status);
+void	edit_oldpwd(char ***ex, char ***en, t_maintools *tools);
+void	add_pwd(char ***ex, char ***en);
 
 #endif

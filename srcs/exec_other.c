@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   exec_other.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
+/*   By: mjoundi <mjoundi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/31 17:20:33 by mjoundi           #+#    #+#             */
-/*   Updated: 2024/09/21 00:57:17 by marvin           ###   ########.fr       */
+/*   Updated: 2024/09/24 19:22:00 by mjoundi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,6 +71,7 @@ int	execute_command(char *cmd_path, t_check_ve *vars, int *exit_status)
 	}
 	else if (pid == 0)
 	{
+		restore_signals();
 		execve(cmd_path, vars->args, vars->env);
 		print_error("Error executing command: ");
 		exit(EXIT_FAILURE);
@@ -79,9 +80,10 @@ int	execute_command(char *cmd_path, t_check_ve *vars, int *exit_status)
 	{
 		ignore_signals();
 		waitpid(pid, &status, 0);
-		restore_signals();
-		if (vars->f != 1)
-			*exit_status = status >> 8;
+		setup_signals();
+		if (status == 2)
+			status = status + 128;
+		*exit_status = status;
 		return (*exit_status);
 	}
 }
