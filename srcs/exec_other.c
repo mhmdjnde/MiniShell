@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   exec_other.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mjoundi <mjoundi@student.42.fr>            +#+  +:+       +#+        */
+/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/31 17:20:33 by mjoundi           #+#    #+#             */
-/*   Updated: 2024/09/24 19:22:00 by mjoundi          ###   ########.fr       */
+/*   Updated: 2024/09/25 21:56:08 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,34 +58,41 @@ char	*get_cmd(char *str)
 	return (temp);
 }
 
-int	execute_command(char *cmd_path, t_check_ve *vars, int *exit_status)
+int execute_command(char *cmd_path, t_check_ve *vars, int *exit_status)
 {
-	int	pid;
-	int	status;
+    int pid;
+    int status;
 
-	pid = fork();
-	if (pid == -1)
-	{
-		print_error("Error forking: ");
-		return (-1);
-	}
-	else if (pid == 0)
-	{
-		restore_signals();
-		execve(cmd_path, vars->args, vars->env);
-		print_error("Error executing command: ");
-		exit(EXIT_FAILURE);
-	}
-	else
-	{
-		ignore_signals();
-		waitpid(pid, &status, 0);
-		setup_signals();
-		if (status == 2)
-			status = status + 128;
-		*exit_status = status;
-		return (*exit_status);
-	}
+    pid = fork();
+    if (pid == -1)
+    {
+        print_error("Error forking: ");
+        return (-1);
+    }
+    else if (pid == 0)
+    {
+        restore_signals();
+        execve(cmd_path, vars->args, vars->env);
+        print_error("Error executing command: ");
+        exit(EXIT_FAILURE);  // This only runs if execve fails
+    }
+    else
+    {
+        ignore_signals();
+        waitpid(pid, &status, 0);  // Wait for the child process
+
+        setup_signals();
+
+        if (WIFEXITED(status))  // Child terminated normally
+        {
+            *exit_status = WEXITSTATUS(status);
+        }
+        else if (WIFSIGNALED(status))  // Child terminated by a signal
+        {
+            *exit_status = 128 + WTERMSIG(status);  // Exit status based on signal number
+        }
+        return *exit_status;
+    }
 }
 
 int	check_absolute_path(char **args, t_check_ve *vars, int *exit_status)

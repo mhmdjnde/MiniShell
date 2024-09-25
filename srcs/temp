@@ -1,14 +1,14 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   pipe.c                                             :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/09/18 15:22:05 by marvin            #+#    #+#             */
-/*   Updated: 2024/09/25 23:05:13 by marvin           ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
+# **************************************************************************** #
+#                                                                              #
+#                                                         :::      ::::::::    #
+#    temp                                               :+:      :+:    :+:    #
+#                                                     +:+ +:+         +:+      #
+#    By: mjoundi <mjoundi@student.42.fr>            +#+  +:+       +#+         #
+#                                                 +#+#+#+#+#+   +#+            #
+#    Created: 2024/09/18 15:22:05 by marvin            #+#    #+#              #
+#    Updated: 2024/09/25 19:52:14 by mjoundi          ###   ########.fr        #
+#                                                                              #
+# **************************************************************************** #
 
 #include "minishell.h"
 
@@ -162,30 +162,29 @@ int	check_token_err(char **cmds)
 	return (1);
 }
 
-int pipe_fork(t_pipetools *pt) {
-    if (pt->i < pt->num_cmds - 1) {
-        if (pipe(pt->pipefd) == -1) {
-            perror("pipe");
-            return 0;
-        }
-    }
-    pt->pid = fork();
-    if (pt->pid == -1) {
-        perror("fork");
-        return 0;
-    }
-    if (pt->pid == 0) {
-        // Child process: Restore default signal handlers
-        restore_signals();
-    } else {
-        // Parent process: Ignore signals while waiting
-        ignore_signals();
-    }
-    return 1;
+int	pipe_fork(t_pipetools *pt)
+{
+	if (pt->i < pt->num_cmds - 1)
+	{
+		if (pipe(pt->pipefd) == -1)
+		{
+			perror("pipe");
+			return (0);
+		}
+	}
+	pt->pid = fork();
+	if (pt->pid == -1)
+	{
+		perror("fork");
+		return (0);
+	}
+	return (1);
 }
 
-void	pipe_func(t_pipetools *pt, t_maintools *tools)
+int	pipe_func(t_pipetools *pt, t_maintools *tools)
 {
+	int	t;
+
 	if (pt->i > 0)
 	{
 		dup2(pt->prev_fd, STDIN_FILENO);
@@ -198,11 +197,16 @@ void	pipe_func(t_pipetools *pt, t_maintools *tools)
 		close(pt->pipefd[1]);
 	}
 	tools->str = tools->cmds[pt->i];
-	run_one_cmd(tools);
+	t = run_one_cmd(tools);
+	if (t == 2)
+		return (2);
+	return (1);
 }
 
 int	pipe_main(t_pipetools *pt, t_maintools *tools)
 {
+	int	t;
+
 	while (tools->cmds[pt->num_cmds] != NULL)
 		pt->num_cmds++;
 	while (tools->cmds[pt->i] != NULL)
@@ -211,15 +215,11 @@ int	pipe_main(t_pipetools *pt, t_maintools *tools)
 			return 0;
 		if (pt->pid == 0)
 		{
-			pipe_func(pt, tools);
-			// if (tools->cmds[pt->i + 1] != NULL)
-				printf("%d, %d\n\n", tools->exit_status, pt->i);
-			exit(tools->exit_status);
+			t = pipe_func(pt, tools);
+			exit(EXIT_SUCCESS);
 		}
 		else
 		{
-			// if (tools->cmds[pt->i + 1] != NULL)
-				printf("%d. %d\n\n", tools->exit_status, pt->i);
 			if (pt->i > 0)
 				close(pt->prev_fd);
 			if (pt->i < pt->num_cmds - 1)
@@ -228,40 +228,47 @@ int	pipe_main(t_pipetools *pt, t_maintools *tools)
 				pt->prev_fd = pt->pipefd[0];
 			}
 		}
-		ft_putendl_fd(ft_itoa(tools->exit_status), 2);
 		pt->i++;
 	}
-	return (1);
+	if (t != 2)
+		return (1);
+	return (2);
 }
 
-void run_pipes(t_maintools *tools) {
-    t_pipetools pt;
+void	run_pipes(t_maintools *tools)
+{
+	t_pipetools pt;
+	int			t;
 
-    pt.i = 0;
-    pt.prev_fd = -1;
-    tools->cmds = parse_pipe(tools->str);
-    free(tools->str);
-    if (tools->cmds == NULL) {
-        tools->exit_status = 2;
-        return;
-    }
-    if (check_token_err(tools->cmds) == 0) {
-        tools->exit_status = 2;
-        free_args(&tools->cmds);
-        return;
-    }
-    pt.num_cmds = 0;
-    if (pipe_main(&pt, tools) == 0)
-        return;
-    pt.i = 0;
-    while (pt.i < pt.num_cmds) {
-        wait(&pt.status);
-        pt.i++;
-    }
-	printf("%d\n\n", tools->exit_status);
-    if (pt.prev_fd != -1)
-        close(pt.prev_fd);
-    setup_signals();
+	pt.i = 0;
+	pt.prev_fd = -1;
+	tools->cmds = parse_pipe(tools->str);
+	free(tools->str);
+	if (tools->cmds == NULL)
+	{
+		tools->exit_status = 2;
+		return;
+	}
+	if (check_token_err(tools->cmds) == 0)
+	{
+		tools->exit_status = 2;
+		free_args(&tools->cmds);
+		return;
+	}
+	pt.num_cmds = 0;
+	t = pipe_main(&pt, tools);
+	if (t == 0)
+		return ;
+	else if (t == 2)
+		tools->exit
+	pt.i = 0;
+	while (pt.i < pt.num_cmds)
+	{
+		wait(&pt.status);
+		pt.i++;
+	}
+	if (pt.prev_fd != -1)
+		close(pt.prev_fd);
 }
 
 // int	main(void)

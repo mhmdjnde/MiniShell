@@ -6,7 +6,7 @@
 /*   By: mjoundi <mjoundi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/20 18:27:32 by mjoundi           #+#    #+#             */
-/*   Updated: 2024/09/24 14:45:09 by mjoundi          ###   ########.fr       */
+/*   Updated: 2024/09/25 18:50:32 by mjoundi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@ int	n_check(char *str)
 	return (0);
 }
 
-void	echo_args_check(char **strs)
+void	echo_args_check(char **strs, t_maintools *tools)
 {
 	int		i;
 	int		nf;
@@ -45,8 +45,11 @@ void	echo_args_check(char **strs)
 	}
 	while (strs[i] != NULL)
 	{
-		without_quotes(strs[i], 0);
 		t = without_quotes_ret(strs[i], 0);
+		t = rm_dl(t);
+		var_in_env(&t, tools->en, &tools->exit_status);
+		t = rm_bs(t);
+		printf("%s", t);
 		i++;
 		if (strs[i] != NULL && !empty(t))
 			write(1, " ", 1);

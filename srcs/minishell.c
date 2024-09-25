@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/27 19:07:27 by mjoundi           #+#    #+#             */
-/*   Updated: 2024/09/25 01:34:41 by marvin           ###   ########.fr       */
+/*   Updated: 2024/09/25 21:39:07 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -199,11 +199,8 @@ void	envv(char **env, int *exit_status)
 
 void	echo(t_maintools *tools)
 {
-	tools->str = rm_dl(tools->str);
-	var_in_env(&tools->str, tools->en, &tools->exit_status);
-	tools->str = rm_bs(tools->str);
 	tools->strs = parse_args(tools->str, "echo");
-	echo_args_check(tools->strs);
+	echo_args_check(tools->strs, tools);
 	free_args(&tools->strs);
 	tools->exit_status = 0;
 }
@@ -390,10 +387,10 @@ int	main(int ac, char **av, char **env)
 	while (1)
 	{
 		test = ini_loop(&tools);
-		if (g_s == 2)
+		if (g_s == 2 || g_s == 3)
 		{
+			tools.exit_status = 128 + g_s;
 			g_s = 0;
-			tools.exit_status = 130;	
 		}
 		if (test == -1)
 			break ;
@@ -410,12 +407,15 @@ int	main(int ac, char **av, char **env)
 		else
 		{
 			run_pipes(&tools);
-			if (tools.cmds != NULL)
-				free_args(&tools.cmds);
+			// if (tools.cmds != NULL)
+			// 	free_args(&tools.cmds);
 		}
 	}
+	rl_clear_history();
+	clear_history();
 	if (test != 2)
 		printf("exit\n");
 	freee(&tools);
+	exit(tools.exit_status);
 	return (0);
 }

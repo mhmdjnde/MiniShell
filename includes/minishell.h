@@ -121,7 +121,7 @@ char		*extract_arg(char *str, int *index);
 char		**parse_args(char *str, char *cmd);
 void		exit_args_check(char **args, int *exit_status);
 void		free_args(char ***args);
-void		echo_args_check(char **strs);
+void	echo_args_check(char **strs, t_maintools *tools);
 void		q_args(char **args);
 void		without_quotes(char *str, int flag);
 void		print_env(char **env);
