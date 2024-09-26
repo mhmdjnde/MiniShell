@@ -91,6 +91,7 @@ typedef struct s_pipetools
 	pid_t	pid;
 	int		status;
 	int		num_cmds;
+	pid_t 		*pids;
 }	t_pipetools;
 
 int			ft_strlen(char *str);
@@ -136,7 +137,7 @@ void		sort_env(char **arr, int n);
 void		get_pwd(char *str, int *exit_status, char **ex);
 char		*env_search(char *str, char **env);
 void		add_exp(t_maintools *tools, char ***ex, char ***en, int sf);
-void		do_cd(char **env, char *str, char **old, int *exit_status);
+void		do_cd(char **env, char *str, char **old, t_maintools *tools);
 char		*add_equal(char *str);
 void		rm_exp(char **args, char ***ex, char ***en, int *exit_status);
 char		*ret_to_equal(char *str);

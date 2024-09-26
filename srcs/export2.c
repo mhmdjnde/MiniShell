@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/05 17:28:20 by fdahouk           #+#    #+#             */
-/*   Updated: 2024/09/25 01:07:11 by marvin           ###   ########.fr       */
+/*   Updated: 2024/09/26 23:12:35 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -166,7 +166,7 @@ void	edit_pwd(char ***ex, char ***en, t_maintools *tools)
 	{
 		if (f != 1 && tools->cdf == 1)
 		{
-			tools->cd = NULL;
+			// tools->cd = NULL;
 			t_tools.strs = malloc(3 * sizeof(char *));
 			t_tools.strs[0] = ft_strdup("jnde");
 			t_tools.strs[1] = ft_strdup("OLDPWD");
@@ -202,18 +202,21 @@ void	edit_oldpwd(char ***ex, char ***en, t_maintools *tools)
 	char		*oldpwd;
 	t_maintools	t_tools;
 
-	oldpwd = tools->cd;
-	if (oldpwd == NULL)
-		return ;
-	t_tools.strs = malloc(3 * sizeof(char *));
-	t_tools.strs[0] = malloc(5);
-	ft_strcpy(t_tools.strs[0], "jnde");
-	t_tools.strs[1] = malloc(8 + ft_strlen(oldpwd) + 1);
-	ft_strcpy(t_tools.strs[1], "OLDPWD=");
-	strncat(t_tools.strs[1], oldpwd, ft_strlen(oldpwd));
-	t_tools.strs[2] = NULL;
-	add_exp(&t_tools, ex, en, 1);
-	free_args(&t_tools.strs);
+	if (env_search("OLDPWD", *en) != NULL)
+	{
+		oldpwd = tools->cd;
+		if (oldpwd == NULL)
+			return ;
+		t_tools.strs = malloc(3 * sizeof(char *));
+		t_tools.strs[0] = malloc(5);
+		ft_strcpy(t_tools.strs[0], "jnde");
+		t_tools.strs[1] = malloc(8 + ft_strlen(oldpwd) + 1);
+		ft_strcpy(t_tools.strs[1], "OLDPWD=");
+		strncat(t_tools.strs[1], oldpwd, ft_strlen(oldpwd));
+		t_tools.strs[2] = NULL;
+		add_exp(&t_tools, ex, en, 1);
+		free_args(&t_tools.strs);
+	}
 }
 
 int	p_exp_err(t_maintools *tools, int i, char *error, int ext)

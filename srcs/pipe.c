@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/18 15:22:05 by marvin            #+#    #+#             */
-/*   Updated: 2024/09/25 23:05:13 by marvin           ###   ########.fr       */
+/*   Updated: 2024/09/27 01:50:59 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -200,38 +200,55 @@ void	pipe_func(t_pipetools *pt, t_maintools *tools)
 	tools->str = tools->cmds[pt->i];
 	run_one_cmd(tools);
 }
+#include "minishell.h"
 
-int	pipe_main(t_pipetools *pt, t_maintools *tools)
-{
-	while (tools->cmds[pt->num_cmds] != NULL)
-		pt->num_cmds++;
-	while (tools->cmds[pt->i] != NULL)
-	{
-		if (pipe_fork(pt) == 0)
-			return 0;
-		if (pt->pid == 0)
-		{
-			pipe_func(pt, tools);
-			// if (tools->cmds[pt->i + 1] != NULL)
-				printf("%d, %d\n\n", tools->exit_status, pt->i);
-			exit(tools->exit_status);
-		}
-		else
-		{
-			// if (tools->cmds[pt->i + 1] != NULL)
-				printf("%d. %d\n\n", tools->exit_status, pt->i);
-			if (pt->i > 0)
-				close(pt->prev_fd);
-			if (pt->i < pt->num_cmds - 1)
+// Function to initialize pipe tools
+void init_pipe_tools(t_pipetools *pt, int num_cmds) {
+    pt->i = 0;
+    pt->prev_fd = -1;
+    pt->num_cmds = num_cmds;
+    pt->pids = malloc(num_cmds * sizeof(pid_t)); // Allocate space for PIDs
+    if (!pt->pids) {
+        perror("malloc");
+        exit(EXIT_FAILURE);
+    }
+}
+
+int pipe_main(t_pipetools *pt, t_maintools *tools) {
+    // Count the number of commands
+    pt->num_cmds = 0;
+    while (tools->cmds[pt->num_cmds] != NULL) {
+        pt->num_cmds++;
+    }
+
+    // Allocate memory for pids after num_cmds is set
+    pt->pids = malloc(pt->num_cmds * sizeof(pid_t));
+    if (pt->pids == NULL) {
+        perror("malloc");
+        return 0;
+    }
+
+    while (tools->cmds[pt->i] != NULL) {
+        if (pipe_fork(pt) == 0) {
+            free(pt->pids);  // Free allocated pids before returning
+            return 0;
+        }
+        if (pt->pid == 0) {
+            pipe_func(pt, tools);
+            exit(tools->exit_status); // Exit with the command's status
+        } else {
+            pt->pids[pt->i] = pt->pid;  // Store the child's PID
+            if (pt->i > 0)
+                close(pt->prev_fd);
+            if (pt->i < pt->num_cmds - 1)
 			{
-				close(pt->pipefd[1]);
-				pt->prev_fd = pt->pipefd[0];
-			}
-		}
-		ft_putendl_fd(ft_itoa(tools->exit_status), 2);
-		pt->i++;
-	}
-	return (1);
+                close(pt->pipefd[1]);
+                pt->prev_fd = pt->pipefd[0];
+            }
+        }
+        pt->i++;
+    }
+    return 1;
 }
 
 void run_pipes(t_maintools *tools) {
@@ -247,22 +264,30 @@ void run_pipes(t_maintools *tools) {
     }
     if (check_token_err(tools->cmds) == 0) {
         tools->exit_status = 2;
-        free_args(&tools->cmds);
         return;
     }
-    pt.num_cmds = 0;
+
+    pt.num_cmds = 0; // Will be set in pipe_main
     if (pipe_main(&pt, tools) == 0)
         return;
+
     pt.i = 0;
     while (pt.i < pt.num_cmds) {
-        wait(&pt.status);
+        waitpid(pt.pids[pt.i], &pt.status, 0);
         pt.i++;
     }
-	printf("%d\n\n", tools->exit_status);
+    tools->exit_status = WEXITSTATUS(pt.status);
+
+    // Free resources
+    free(pt.pids);
     if (pt.prev_fd != -1)
         close(pt.prev_fd);
+
     setup_signals();
 }
+
+
+
 
 // int	main(void)
 // {

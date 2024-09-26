@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/27 19:07:27 by mjoundi           #+#    #+#             */
-/*   Updated: 2024/09/25 21:39:07 by marvin           ###   ########.fr       */
+/*   Updated: 2024/09/27 02:48:39 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -144,7 +144,7 @@ void	print_in_cd(t_maintools *tools)
 {
 	write(2, "cd: ", 4);
 	ft_putstr_fd(env_search("HOME", tools->en), 2);
-	write(2, " No such file or directory\n", 26);
+	write(2, " No such file or directory\n", 27);
 	tools->exit_status = 1;
 }
 
@@ -239,16 +239,26 @@ int	cd(t_maintools *tools)
 	}
 	if (count_args(tools->str, "cd") == 0)
 	{
-		if (chdir(env_search("HOME", tools->en)) == 0)
-			tools->cd = getcwd(NULL, 0);
+		tools->temp = get_pwd2(tools->en, &tools->exit_status);
+		if (env_search("HOME", tools->en) != NULL)
+		{
+			if (chdir(env_search("HOME", tools->en)) == 0)
+			{
+				free(tools->cd);
+				tools->cd = ft_strdup(tools->temp);
+			}
+			else
+				print_in_cd(tools);
+		}
 		else
-			print_in_cd(tools);
+			write(2, "bash: cd: HOME not set\n", 24);
+		free(tools->temp);
 		free(tools->str);
 		tools->cdf = 1;
 		return (0);
 	}
 	tools->strs = parse_args(tools->str, "cd");
-	do_cd(tools->en, tools->strs[1], &tools->cd, &tools->exit_status);
+	do_cd(tools->en, tools->strs[1], &tools->cd, tools);
 	free_args(&tools->strs);
 	tools->cdf = 1;
 	return (1);
@@ -347,7 +357,7 @@ int	main_main(t_maintools *tools)
 	else if (parse_cmd(tools->str, "export") >= 0)
 		export(tools);
 	else if (parse_cmd(tools->str, "pwd") >= 0)
-		get_pwd(tools->str, &tools->exit_status, tools->ex);
+		get_pwd(tools->str, &tools->exit_status, tools->en);
 	else if (parse_cmd(tools->str, "cd") >= 0)
 	{
 		if (cd(tools) == 0)
@@ -371,7 +381,11 @@ int	run_one_cmd(t_maintools *tools)
 	if (test == -1)
 		return (2);
 	else if (test == 0)
+	{
+		if (tools->tmp.fd)
+			free(tools->tmp.fd);
 		return (1);
+	}
 	clean(tools);
 	return (0);
 }
@@ -407,8 +421,8 @@ int	main(int ac, char **av, char **env)
 		else
 		{
 			run_pipes(&tools);
-			// if (tools.cmds != NULL)
-			// 	free_args(&tools.cmds);
+			if (tools.cmds != NULL)
+				free_args(&tools.cmds);
 		}
 	}
 	rl_clear_history();
