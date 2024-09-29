@@ -137,6 +137,7 @@ int	flag_check(char *str)
 	}
 	return (1);
 }
+
 void	free_three(char *t, char *t2, char *t3)
 {
 	free(t);
@@ -151,11 +152,10 @@ int	printing_with_return(int *exit_status)
 	return (1);
 }
 
-
 void	inc_and_free(int *i, char *t3, char *t2, char *t)
 {
 	(*i)++;
-	free_three(t,t2,t3);
+	free_three(t, t2, t3);
 }
 
 void	complete_if(char *t, char *t2, char ***en, char ***ex)
@@ -165,6 +165,7 @@ void	complete_if(char *t, char *t2, char ***en, char ***ex)
 	if (ret_s_index2(t, *ex) != -1)
 		*ex = remove_at_s(*ex, ret_s_index2(t, *ex));
 }
+
 void	rm_exp(char **args, char ***ex, char ***en, int *exit_status)
 {
 	int		i;
@@ -173,7 +174,7 @@ void	rm_exp(char **args, char ***ex, char ***en, int *exit_status)
 	char	*t3;
 
 	i = 1;
-	if (args_len(args) >= 2 && flag_check(args[1]) == -1 
+	if (args_len(args) >= 2 && flag_check(args[1]) == -1
 		&& printing_with_return(exit_status) == 1)
 		return ;
 	while (args[i] != NULL)
@@ -183,7 +184,7 @@ void	rm_exp(char **args, char ***ex, char ***en, int *exit_status)
 		t2 = add_equal(t);
 		if (check_unset(args[i]) != -1)
 		{
-			inc_and_free(&i,t3,t2,t);
+			inc_and_free(&i, t3, t2, t);
 			continue ;
 		}
 		complete_if(t, t2, en, ex);
@@ -192,4 +193,3 @@ void	rm_exp(char **args, char ***ex, char ***en, int *exit_status)
 	}
 	*exit_status = 0;
 }
-

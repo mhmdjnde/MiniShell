@@ -3,26 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   ft_substr.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
+/*   By: mjoundi <mjoundi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/12 13:50:05 by mjoundi           #+#    #+#             */
-/*   Updated: 2024/09/13 23:06:01 by marvin           ###   ########.fr       */
+/*   Updated: 2024/09/27 18:04:20 by mjoundi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
-
-int	ft_strlenn(const char *str)
-{
-	int	i;
-
-	i = 0;
-	while (str[i] != '\0')
-	{
-		i++;
-	}
-	return (i);
-}
 
 char	*allocation(char *substr)
 {
@@ -47,10 +35,10 @@ char	*ft_substr(char *s, int start, int len)
 	j = 0;
 	substr = "";
 	lenn = (unsigned int)len;
-	if (start >= ft_strlenn(s))
+	if (start >= ft_strlen(s))
 		return (allocation(substr));
-	if (ft_strlenn(s) - start < lenn)
-		substr = (char *)malloc((ft_strlenn(s) - start + 1) * sizeof(char));
+	if (ft_strlen(s) - start < lenn)
+		substr = (char *)malloc((ft_strlen(s) - start + 1) * sizeof(char));
 	else
 		substr = (char *)malloc((lenn + 1) * sizeof(char));
 	if (!substr)

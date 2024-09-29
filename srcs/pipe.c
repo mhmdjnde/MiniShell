@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/18 15:22:05 by marvin            #+#    #+#             */
-/*   Updated: 2024/09/27 01:50:59 by marvin           ###   ########.fr       */
+/*   Updated: 2024/09/29 22:15:06 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,6 +108,17 @@ void	p_q(int *i, char *str)
 		(*i)++;
 }
 
+int	cmd_parse(char *str, int *i, int **tab, char ***cmds)
+{
+	if (fill_cmds(str, i, tab, cmds) == 0)
+	{
+		(*cmds)[(*tab)[1]] = NULL;
+		free_args(cmds);
+		return (free(*tab), -1);
+	}
+	return (1);
+}
+
 char	**parse_pipe(char *str)
 {
 	int		i;
@@ -125,12 +136,8 @@ char	**parse_pipe(char *str)
 			p_q(&i, str);
 		else if (str[i] == '|')
 		{
-			if (fill_cmds(str, &i, &tab, &cmds) == 0)
-			{
-				cmds[tab[1]] = NULL;
-				free_args(&cmds);
-				return (free(tab), NULL);
-			}
+			if (cmd_parse(str, &i, &tab, &cmds) == -1)
+				return (NULL);
 		}
 		else
 			i++;
@@ -162,26 +169,27 @@ int	check_token_err(char **cmds)
 	return (1);
 }
 
-int pipe_fork(t_pipetools *pt) {
-    if (pt->i < pt->num_cmds - 1) {
-        if (pipe(pt->pipefd) == -1) {
-            perror("pipe");
-            return 0;
-        }
-    }
-    pt->pid = fork();
-    if (pt->pid == -1) {
-        perror("fork");
-        return 0;
-    }
-    if (pt->pid == 0) {
-        // Child process: Restore default signal handlers
-        restore_signals();
-    } else {
-        // Parent process: Ignore signals while waiting
-        ignore_signals();
-    }
-    return 1;
+int	pipe_fork(t_pipetools *pt)
+{
+	if (pt->i < pt->num_cmds - 1)
+	{
+		if (pipe(pt->pipefd) == -1)
+		{
+			perror("pipe");
+			return (0);
+		}
+	}
+	pt->pid = fork();
+	if (pt->pid == -1)
+	{
+		perror("fork");
+		return (0);
+	}
+	if (pt->pid == 0)
+		restore_signals();
+	else
+		ignore_signals();
+	return (1);
 }
 
 void	pipe_func(t_pipetools *pt, t_maintools *tools)
@@ -200,122 +208,99 @@ void	pipe_func(t_pipetools *pt, t_maintools *tools)
 	tools->str = tools->cmds[pt->i];
 	run_one_cmd(tools);
 }
-#include "minishell.h"
 
-// Function to initialize pipe tools
-void init_pipe_tools(t_pipetools *pt, int num_cmds) {
-    pt->i = 0;
-    pt->prev_fd = -1;
-    pt->num_cmds = num_cmds;
-    pt->pids = malloc(num_cmds * sizeof(pid_t)); // Allocate space for PIDs
-    if (!pt->pids) {
-        perror("malloc");
-        exit(EXIT_FAILURE);
-    }
+void	init_pipe_tools(t_pipetools *pt, int num_cmds)
+{
+	pt->i = 0;
+	pt->prev_fd = -1;
+	pt->num_cmds = num_cmds;
+	pt->pids = malloc(num_cmds * sizeof(pid_t));
+	if (!pt->pids)
+	{
+		perror("malloc");
+		exit(EXIT_FAILURE);
+	}
 }
 
-int pipe_main(t_pipetools *pt, t_maintools *tools) {
-    // Count the number of commands
-    pt->num_cmds = 0;
-    while (tools->cmds[pt->num_cmds] != NULL) {
-        pt->num_cmds++;
-    }
-
-    // Allocate memory for pids after num_cmds is set
-    pt->pids = malloc(pt->num_cmds * sizeof(pid_t));
-    if (pt->pids == NULL) {
-        perror("malloc");
-        return 0;
-    }
-
-    while (tools->cmds[pt->i] != NULL) {
-        if (pipe_fork(pt) == 0) {
-            free(pt->pids);  // Free allocated pids before returning
-            return 0;
-        }
-        if (pt->pid == 0) {
-            pipe_func(pt, tools);
-            exit(tools->exit_status); // Exit with the command's status
-        } else {
-            pt->pids[pt->i] = pt->pid;  // Store the child's PID
-            if (pt->i > 0)
-                close(pt->prev_fd);
-            if (pt->i < pt->num_cmds - 1)
-			{
-                close(pt->pipefd[1]);
-                pt->prev_fd = pt->pipefd[0];
-            }
-        }
-        pt->i++;
-    }
-    return 1;
+void	pipe_work(t_pipetools *pt, t_maintools *tools)
+{
+	if (pt->pid == 0)
+	{
+		pipe_func(pt, tools);
+		exit(tools->exit_status);
+	}
+	else
+	{
+		pt->pids[pt->i] = pt->pid;
+		if (pt->i > 0)
+			close(pt->prev_fd);
+		if (pt->i < pt->num_cmds - 1)
+		{
+			close(pt->pipefd[1]);
+			pt->prev_fd = pt->pipefd[0];
+		}
+	}
 }
 
-void run_pipes(t_maintools *tools) {
-    t_pipetools pt;
-
-    pt.i = 0;
-    pt.prev_fd = -1;
-    tools->cmds = parse_pipe(tools->str);
-    free(tools->str);
-    if (tools->cmds == NULL) {
-        tools->exit_status = 2;
-        return;
-    }
-    if (check_token_err(tools->cmds) == 0) {
-        tools->exit_status = 2;
-        return;
-    }
-
-    pt.num_cmds = 0; // Will be set in pipe_main
-    if (pipe_main(&pt, tools) == 0)
-        return;
-
-    pt.i = 0;
-    while (pt.i < pt.num_cmds) {
-        waitpid(pt.pids[pt.i], &pt.status, 0);
-        pt.i++;
-    }
-    tools->exit_status = WEXITSTATUS(pt.status);
-
-    // Free resources
-    free(pt.pids);
-    if (pt.prev_fd != -1)
-        close(pt.prev_fd);
-
-    setup_signals();
+int	pipe_main(t_pipetools *pt, t_maintools *tools)
+{
+	pt->num_cmds = 0;
+	while (tools->cmds[pt->num_cmds] != NULL)
+		pt->num_cmds++;
+	pt->pids = malloc(pt->num_cmds * sizeof(pid_t));
+	if (pt->pids == NULL)
+	{
+		perror("malloc");
+		return (0);
+	}
+	while (tools->cmds[pt->i] != NULL)
+	{
+		if (pipe_fork(pt) == 0)
+		{
+			free(pt->pids);
+			return (0);
+		}
+		pipe_work(pt, tools);
+		pt->i++;
+	}
+	return (1);
 }
 
+void	wait_pipe(t_maintools *tools, t_pipetools *pt)
+{
+	while (pt->i < pt->num_cmds)
+	{
+		waitpid(pt->pids[pt->i], &pt->status, 0);
+		pt->i++;
+	}
+	tools->exit_status = WEXITSTATUS(pt->status);
+}
 
+void	run_pipes(t_maintools *tools)
+{
+	t_pipetools	pt;
 
-
-// int	main(void)
-// {
-// 	char *str = "echo jnde > jnde | >>>>>> |<  grep jnde";
-
-// 	char **cmds =  parse_pipe(str);
-// 	printf("%d\n\n",  check_token_err(cmds));
-	
-// 	return 0;
-// }
-
-// void	run_pipe(t_maintools *tools)
-// {
-	
-// }
-
-// void 	run_pipes(t_maintools *tools)
-// {
-// 	int		i;
-// 	char	**cmds;
-
-// 	i = 0;
-// 	cmds = parse_pipe(tools->str);
-// 	free(tools->str);
-// 	while (cmds[i] != NULL)
-// 	{
-// 		tools->str = cmds[i];
-// 		run_pipe(tools);
-// 		i++;
-// 	}
-// }
+	pt.i = 0;
+	pt.prev_fd = -1;
+	tools->cmds = parse_pipe(tools->str);
+	free(tools->str);
+	if (tools->cmds == NULL)
+	{
+		tools->exit_status = 2;
+		return ;
+	}
+	if (check_token_err(tools->cmds) == 0)
+	{
+		tools->exit_status = 2;
+		return ;
+	}
+	pt.num_cmds = 0;
+	if (pipe_main(&pt, tools) == 0)
+		return ;
+	pt.i = 0;
+	wait_pipe(tools, &pt);
+	free(pt.pids);
+	if (pt.prev_fd != -1)
+		close(pt.prev_fd);
+	setup_signals();
+}

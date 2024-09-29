@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/27 19:07:27 by mjoundi           #+#    #+#             */
-/*   Updated: 2024/09/27 02:48:39 by marvin           ###   ########.fr       */
+/*   Updated: 2024/09/29 22:03:14 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,11 +44,24 @@ int	is_num(char *str)
 	return (1);
 }
 
+void	event_not_found(char *str, int *i, int *j)
+{
+	char	*t;
+
+	(*i)++;
+	*j = *i;
+	while (str[*i] != '\0' && is_ok(str[*i]))
+		(*i)++;
+	t = ft_substr(str, *j, *i - *j);
+	ft_putstr_fd(t, 2);
+	write(2, " event not found\n", 17);
+	free(t);
+}
+
 int	event_check(char *str)
 {
 	int		i;
 	char	q;
-	char	*t;
 	int		j;
 
 	i = 0;
@@ -63,14 +76,7 @@ int	event_check(char *str)
 		}
 		else if (str[i] == '!')
 		{
-			i++;
-			j = i;
-			while (str[i] != '\0' && is_ok(str[i]))
-				i++;
-			t = ft_substr(str, j, i - j);
-			ft_putstr_fd(t, 2);
-			write(2, " event not found\n", 17);
-			free(t);
+			event_not_found(str, &i, &j);
 			return (0);
 		}
 		else
@@ -223,11 +229,8 @@ void	export(t_maintools *tools)
 	}
 }
 
-int	cd(t_maintools *tools)
+int	cd_err_1(t_maintools *tools)
 {
-	tools->str = rm_dl(tools->str);
-	var_in_env(&tools->str, tools->en, &tools->exit_status);
-	tools->str = rm_bs(tools->str);
 	if (count_args(tools->str, "cd") > 1)
 	{
 		tools->strs = parse_args(tools->str, "cd");
@@ -237,19 +240,32 @@ int	cd(t_maintools *tools)
 		tools->cdf = 1;
 		return (0);
 	}
+	return (1);
+}
+
+void	cd_err_2(t_maintools *tools)
+{
+	if (chdir(env_search("HOME", tools->en)) == 0)
+	{
+		free(tools->cd);
+		tools->cd = ft_strdup(tools->temp);
+	}
+	else
+		print_in_cd(tools);
+}
+
+int	cd(t_maintools *tools)
+{
+	tools->str = rm_dl(tools->str);
+	var_in_env(&tools->str, tools->en, &tools->exit_status);
+	tools->str = rm_bs(tools->str);
+	if (cd_err_1(tools) == 0)
+		return (0);
 	if (count_args(tools->str, "cd") == 0)
 	{
 		tools->temp = get_pwd2(tools->en, &tools->exit_status);
 		if (env_search("HOME", tools->en) != NULL)
-		{
-			if (chdir(env_search("HOME", tools->en)) == 0)
-			{
-				free(tools->cd);
-				tools->cd = ft_strdup(tools->temp);
-			}
-			else
-				print_in_cd(tools);
-		}
+			cd_err_2(tools);
 		else
 			write(2, "bash: cd: HOME not set\n", 24);
 		free(tools->temp);
@@ -271,7 +287,6 @@ void	unset(t_maintools *tools)
 	tools->str = rm_bs(tools->str);
 	tools->strs = parse_args(tools->str, "unset");
 	rm_exp(tools->strs, &tools->ex, &tools->en, &tools->exit_status);
-
 	free_args(&tools->strs);
 }
 
@@ -390,6 +405,35 @@ int	run_one_cmd(t_maintools *tools)
 	return (0);
 }
 
+void	main_loop(t_maintools *tools, int *test)
+{
+	while (1)
+	{
+		*test = ini_loop(tools);
+		if (g_s == 2 || g_s == 3)
+		{
+			tools->exit_status = 128 + g_s;
+			g_s = 0;
+		}
+		if (*test == -1)
+			break ;
+		else if (*test == 0)
+			continue ;
+		if (pipe_check(tools->str) == 0)
+		{
+			*test = run_one_cmd(tools);
+			if (*test == 2)
+				break ;
+		}
+		else
+		{
+			run_pipes(tools);
+			if (tools->cmds != NULL)
+				free_args(&tools->cmds);
+		}
+	}
+}
+
 int	main(int ac, char **av, char **env)
 {
 	t_maintools	tools;
@@ -398,33 +442,7 @@ int	main(int ac, char **av, char **env)
 	(void)ac;
 	(void)av;
 	ini_tools_1(&tools, env);
-	while (1)
-	{
-		test = ini_loop(&tools);
-		if (g_s == 2 || g_s == 3)
-		{
-			tools.exit_status = 128 + g_s;
-			g_s = 0;
-		}
-		if (test == -1)
-			break ;
-		else if (test == 0)
-			continue ;
-		if (pipe_check(tools.str) == 0)
-		{
-			test = run_one_cmd(&tools);
-			// if (test == -1)
-			// 	continue ;
-			if (test == 2)
-				break ;
-		}
-		else
-		{
-			run_pipes(&tools);
-			if (tools.cmds != NULL)
-				free_args(&tools.cmds);
-		}
-	}
+	main_loop(&tools, &test);
 	rl_clear_history();
 	clear_history();
 	if (test != 2)

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   echo.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mjoundi <mjoundi@student.42.fr>            +#+  +:+       +#+        */
+/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/20 18:27:32 by mjoundi           #+#    #+#             */
-/*   Updated: 2024/09/25 18:50:32 by mjoundi          ###   ########.fr       */
+/*   Updated: 2024/09/29 16:21:08 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,17 @@ int	n_check(char *str)
 	return (0);
 }
 
+void	skip_n(int *i, char **strs, int *nf)
+{
+	while (strs[*i] != NULL && parse_flags(strs[*i], "-n") >= 0)
+	{
+		if (n_check(strs[*i]) == 0)
+			break ;
+		(*i)++;
+		*nf = 1;
+	}
+}
+
 void	echo_args_check(char **strs, t_maintools *tools)
 {
 	int		i;
@@ -36,13 +47,7 @@ void	echo_args_check(char **strs, t_maintools *tools)
 
 	i = 1;
 	nf = 0;
-	while (strs[i] != NULL && parse_flags(strs[i], "-n") >= 0)
-	{
-		if (n_check(strs[i]) == 0)
-			break ;
-		i++;
-		nf = 1;
-	}
+	skip_n(&i, strs, &nf);
 	while (strs[i] != NULL)
 	{
 		t = without_quotes_ret(strs[i], 0);

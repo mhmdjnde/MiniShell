@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   export3.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
+/*   By: fdahouk <fdahouk@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/05 17:33:35 by fdahouk           #+#    #+#             */
-/*   Updated: 2024/09/21 01:27:14 by marvin           ###   ########.fr       */
+/*   Updated: 2024/09/27 16:14:34 by fdahouk          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,7 @@ void	inc_shlvl(char ***ex, char ***en)
 	if (shlvl_func(&lvl, &str, &new_lvl_str, &t_tools.strs) == 0)
 		return ;
 	ft_strcpy(str, "SHLVL=");
-	strncat(str, new_lvl_str, ft_strlen(new_lvl_str));
+	ft_strncat(str, new_lvl_str, ft_strlen(new_lvl_str));
 	free(new_lvl_str);
 	t_tools.strs[1] = str;
 	add_exp(&t_tools, ex, en, 1);

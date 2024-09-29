@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/31 17:20:33 by mjoundi           #+#    #+#             */
-/*   Updated: 2024/09/25 21:56:08 by marvin           ###   ########.fr       */
+/*   Updated: 2024/09/29 16:22:45 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,41 +58,42 @@ char	*get_cmd(char *str)
 	return (temp);
 }
 
-int execute_command(char *cmd_path, t_check_ve *vars, int *exit_status)
+int	fork_check(int pid)
 {
-    int pid;
-    int status;
+	if (pid == -1)
+	{
+		print_error("Error forking: ");
+		return (-1);
+	}
+	return (1);
+}
 
-    pid = fork();
-    if (pid == -1)
-    {
-        print_error("Error forking: ");
-        return (-1);
-    }
-    else if (pid == 0)
-    {
-        restore_signals();
-        execve(cmd_path, vars->args, vars->env);
-        print_error("Error executing command: ");
-        exit(EXIT_FAILURE);  // This only runs if execve fails
-    }
-    else
-    {
-        ignore_signals();
-        waitpid(pid, &status, 0);  // Wait for the child process
+int	execute_command(char *cmd_path, t_check_ve *vars, int *exit_status)
+{
+	int	pid;
+	int	status;
 
-        setup_signals();
-
-        if (WIFEXITED(status))  // Child terminated normally
-        {
-            *exit_status = WEXITSTATUS(status);
-        }
-        else if (WIFSIGNALED(status))  // Child terminated by a signal
-        {
-            *exit_status = 128 + WTERMSIG(status);  // Exit status based on signal number
-        }
-        return *exit_status;
-    }
+	pid = fork();
+	if (fork_check(pid) == -1)
+		return (-1);
+	else if (pid == 0)
+	{
+		restore_signals();
+		execve(cmd_path, vars->args, vars->env);
+		print_error("Error executing command: ");
+		exit(EXIT_FAILURE);
+	}
+	else
+	{
+		ignore_signals();
+		waitpid(pid, &status, 0);
+		setup_signals();
+		if (WIFEXITED(status))
+			*exit_status = WEXITSTATUS(status);
+		else if (WIFSIGNALED(status))
+			*exit_status = 128 + WTERMSIG(status);
+		return (*exit_status);
+	}
 }
 
 int	check_absolute_path(char **args, t_check_ve *vars, int *exit_status)
@@ -104,7 +105,8 @@ int	check_absolute_path(char **args, t_check_ve *vars, int *exit_status)
 		if (stat(args[0], &sb) == 0)
 		{
 			if ((sb.st_mode & S_IFMT) == S_IFDIR
-				&& print_in_chek_absolute_dir(vars->args, vars->f, exit_status) == 0)
+				&& print_in_chek_absolute_dir(vars->args,
+					vars->f, exit_status) == 0)
 				return (-1);
 			else if (access(args[0], X_OK) == 0)
 			{
@@ -112,7 +114,8 @@ int	check_absolute_path(char **args, t_check_ve *vars, int *exit_status)
 				return (execute_command(args[0], vars, exit_status));
 			}
 			else
-				return (print_in_chek_absolute_denied(vars->args, vars->f, exit_status));
+				return (print_in_chek_absolute_denied(vars->args,
+						vars->f, exit_status));
 		}
 		else
 			return (print_in_chek_absolute_no_file(args));
@@ -136,8 +139,8 @@ char	*construct_command_path(t_check_ve *vars, char *cmd)
 	}
 	strcpy(cmd_path, vars->dir);
 	if (dir_len > 0 && vars->dir[dir_len - 1] != '/')
-		strcat(cmd_path, "/");
-	strcat(cmd_path, cmd);
+		ft_strcat(cmd_path, "/");
+	ft_strcat(cmd_path, cmd);
 	free(vars->dir);
 	return (cmd_path);
 }
@@ -199,11 +202,11 @@ void	init_vars(t_check_ve *vars, int *exit_status)
 	vars->cmd_path = NULL;
 	vars->dir = NULL;
 	vars->path = env_search("PATH", vars->env);
-	if (vars->path == NULL)
+	if (vars->path == NULL && access(vars->args[0], F_OK) != 0)
 	{
 		write(2, "bash: ", 6);
 		ft_putstr_fd(vars->args[0], 2);
-		write(2, "No such file or directory\n", 26);
+		write(2, " No such file or directory\n", 27);
 		return ;
 	}
 }

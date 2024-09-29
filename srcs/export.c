@@ -112,7 +112,7 @@ char	*add_quotes(char *str)
 	int		j;
 
 	i = 0;
-	temp = malloc(strlen(str) + 3);
+	temp = malloc(ft_strlen(str) + 3);
 	if (!temp)
 		return (NULL);
 	while (str[i] != '=' && str[i] != '\0')

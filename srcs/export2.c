@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/05 17:28:20 by fdahouk           #+#    #+#             */
-/*   Updated: 2024/09/26 23:12:35 by marvin           ###   ########.fr       */
+/*   Updated: 2024/09/29 16:31:17 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -137,14 +137,29 @@ void	add_exp(t_maintools *tools, char ***ex, char ***en, int sf)
 	edited_exit_status(tools, tab[1], sf);
 }
 
+void	deleted_pwd(t_maintools *tools, t_maintools *t_tools, int f)
+{
+	int	t;
+
+	t = 0;
+	if (f != 1 && tools->cdf == 1)
+	{
+		// tools->cd = NULL;
+		t_tools->strs = malloc(3 * sizeof(char *));
+		t_tools->strs[0] = ft_strdup("jnde");
+		t_tools->strs[1] = ft_strdup("OLDPWD");
+		t_tools->strs[2] = NULL;
+		rm_exp(t_tools->strs, &tools->ex, &tools->en, &t);
+		add_exp(t_tools, &tools->ex, &tools->en, 1);
+	}
+}
+
 void	edit_pwd(char ***ex, char ***en, t_maintools *tools)
 {
 	char		*pwd;
 	t_maintools	t_tools;
 	static int	f;
-	int			t;
 
-	t = 0;
 	if (ret_s_index("PWD", *ex) != -1)
 	{
 		pwd = getcwd(NULL, 0);
@@ -155,7 +170,7 @@ void	edit_pwd(char ***ex, char ***en, t_maintools *tools)
 		ft_strcpy(t_tools.strs[0], "jnde");
 		t_tools.strs[1] = malloc(5 + ft_strlen(pwd) + 1);
 		ft_strcpy(t_tools.strs[1], "PWD=");
-		strncat(t_tools.strs[1], pwd, ft_strlen(pwd));
+		ft_strncat(t_tools.strs[1], pwd, ft_strlen(pwd));
 		t_tools.strs[2] = NULL;
 		add_exp(&t_tools, ex, en, 1);
 		free(pwd);
@@ -163,18 +178,7 @@ void	edit_pwd(char ***ex, char ***en, t_maintools *tools)
 		f = 0;
 	}
 	else
-	{
-		if (f != 1 && tools->cdf == 1)
-		{
-			// tools->cd = NULL;
-			t_tools.strs = malloc(3 * sizeof(char *));
-			t_tools.strs[0] = ft_strdup("jnde");
-			t_tools.strs[1] = ft_strdup("OLDPWD");
-			t_tools.strs[2] = NULL;
-			rm_exp(t_tools.strs, ex, en, &t);
-			add_exp(&t_tools, ex, en, 1);
-		}
-	}
+		deleted_pwd(tools, &t_tools, f);
 }
 
 void	add_pwd(char ***ex, char ***en)
@@ -190,7 +194,7 @@ void	add_pwd(char ***ex, char ***en)
 	ft_strcpy(t_tools.strs[0], "jnde");
 	t_tools.strs[1] = malloc(5 + ft_strlen(pwd) + 1);
 	ft_strcpy(t_tools.strs[1], "PWD=");
-	strncat(t_tools.strs[1], pwd, ft_strlen(pwd));
+	ft_strncat(t_tools.strs[1], pwd, ft_strlen(pwd));
 	t_tools.strs[2] = NULL;
 	add_exp(&t_tools, ex, en, 1);
 	free(pwd);
@@ -212,7 +216,7 @@ void	edit_oldpwd(char ***ex, char ***en, t_maintools *tools)
 		ft_strcpy(t_tools.strs[0], "jnde");
 		t_tools.strs[1] = malloc(8 + ft_strlen(oldpwd) + 1);
 		ft_strcpy(t_tools.strs[1], "OLDPWD=");
-		strncat(t_tools.strs[1], oldpwd, ft_strlen(oldpwd));
+		ft_strncat(t_tools.strs[1], oldpwd, ft_strlen(oldpwd));
 		t_tools.strs[2] = NULL;
 		add_exp(&t_tools, ex, en, 1);
 		free_args(&t_tools.strs);

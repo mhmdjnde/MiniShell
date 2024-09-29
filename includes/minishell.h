@@ -27,7 +27,7 @@
 # include <sys/types.h>
 # include <sys/stat.h>
 
-extern int g_s;
+extern int	g_s;
 
 typedef struct s_redtools
 {
@@ -79,8 +79,8 @@ typedef struct s_check_ve
 	char	*path;
 	char	*dir;
 	char	*cmd_path;
-	char    **args;
-	char    **env;
+	char	**args;
+	char	**env;
 }	t_check_ve;
 
 typedef struct s_pipetools
@@ -91,11 +91,14 @@ typedef struct s_pipetools
 	pid_t	pid;
 	int		status;
 	int		num_cmds;
-	pid_t 		*pids;
+	pid_t	*pids;
 }	t_pipetools;
 
 int			ft_strlen(char *str);
 int			ft_strcmp(char *s1, char *s2);
+char		*ft_strcat(char *dest, char *src);
+char		*ft_strrchr(char *s, int c);
+char		*ft_strncat(char *dest, char *src, unsigned int nb);
 int			valquotes(char *str);
 int			parse_cmd(char *str, char *cmd);
 int			count_args(char *str, char *cmd);
@@ -122,7 +125,7 @@ char		*extract_arg(char *str, int *index);
 char		**parse_args(char *str, char *cmd);
 void		exit_args_check(char **args, int *exit_status);
 void		free_args(char ***args);
-void	echo_args_check(char **strs, t_maintools *tools);
+void		echo_args_check(char **strs, t_maintools *tools);
 void		q_args(char **args);
 void		without_quotes(char *str, int flag);
 void		print_env(char **env);
@@ -201,12 +204,12 @@ void		check_if_minus(t_maintools *tools, int tab[2]);
 int			p_exp_err(t_maintools *tools, int i, char *error, int ext);
 int			*init_int_tab(void);
 void		print_cr(char cr);
-int 		edit_red_ext(int *exit_status);
-int 		*init_rtab(void);
+int			edit_red_ext(int *exit_status);
+int			*init_rtab(void);
 void		free_three(char *t, char *t2, char *t3);
 void		run_pipes(t_maintools *tools);
-char	*get_pwd2(char **env, int	*exit_status);
-void	edit_oldpwd(char ***ex, char ***en, t_maintools *tools);
-void	add_pwd(char ***ex, char ***en);
+char		*get_pwd2(char **env, int	*exit_status);
+void		edit_oldpwd(char ***ex, char ***en, t_maintools *tools);
+void		add_pwd(char ***ex, char ***en);
 
 #endif

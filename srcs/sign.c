@@ -6,7 +6,7 @@
 /*   By: mjoundi <mjoundi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/03 19:07:03 by mjoundi           #+#    #+#             */
-/*   Updated: 2024/09/25 19:16:12 by mjoundi          ###   ########.fr       */
+/*   Updated: 2024/09/27 17:14:03 by mjoundi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,16 +23,15 @@ void	handle_sigint(int sig)
 	rl_redisplay();
 }
 
-
 void	setup_signals(void)
 {
-	signal(SIGINT,handle_sigint);
+	signal(SIGINT, handle_sigint);
 	signal(SIGQUIT, SIG_IGN);
 }
 
 void	ignore_signals(void)
 {
-	signal(SIGINT,SIG_IGN);
+	signal(SIGINT, SIG_IGN);
 	signal(SIGQUIT, SIG_IGN);
 }
 

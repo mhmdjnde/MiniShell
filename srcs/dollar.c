@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   dollar.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
+/*   By: fdahouk <fdahouk@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/27 18:52:36 by mjoundi           #+#    #+#             */
-/*   Updated: 2024/09/20 23:46:55 by marvin           ###   ########.fr       */
+/*   Updated: 2024/09/27 16:19:54 by fdahouk          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -167,11 +167,11 @@ void	edit_str(char **str, int start, int end, char *env_value)
 	new_str = (char *)malloc((new_len + 1) * sizeof(char));
 	if (!new_str)
 		return ;
-	strncpy(new_str, *str, start);
+	ft_strncpy(new_str, *str, start);
 	new_str[start] = '\0';
 	if (env_value)
-		strcat(new_str, env_value);
-	strcat(new_str, *str + end);
+		ft_strcat(new_str, env_value);
+	ft_strcat(new_str, *str + end);
 	free(*str);
 	*str = new_str;
 }
@@ -233,7 +233,7 @@ void	var_in_env(char **str, char **env, int *exit_status)
 			else
 			{
 				env_value = env_search(var_name, env);
-				tab[1] = tab[0] - strlen(var_name) - 1;
+				tab[1] = tab[0] - ft_strlen(var_name) - 1;
 				tab[2] = tab[0];
 				edit_str(str, tab[1], tab[2], env_value);
 				restart_i(&tab[0], env_value, tab[1]);

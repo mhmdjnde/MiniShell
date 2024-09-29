@@ -32,16 +32,9 @@ void	get_pwd(char *str, int *exit_status, char **en)
 		else
 			free_in_pwd(args, temp);
 	}
-	cwd = getcwd(NULL, 0);
+	cwd = get_pwd2(en, exit_status);
 	if (cwd != NULL)
 		print_free_cwd(cwd);
-	else
-	{
-		temp = ft_strdup("$PWD");
-		var_in_env(&temp, en, exit_status);
-		if (!empty(temp))
-			printf("%s\n", temp);
-	}
 	*exit_status = 0;
 }
 
@@ -92,10 +85,38 @@ char	*get_oldpwd(char **env)
 		return (NULL);
 }
 
-void	minuscase(char **old, int *exit_status, char **env, t_maintools *tools)
+void	minus_func(char **old, char **env, int *exit_status, char **current_dir)
 {
-	char	*current_dir;
-	char	*en_old;
+	if (*old != NULL)
+	{
+		*current_dir = get_pwd2(env, exit_status);
+		if (chdir(*old) == 0)
+		{
+			printf("%s\n", *old);
+			free(*old);
+			*old = *current_dir;
+		}
+		else
+		{
+			*exit_status = 1;
+			write(2, "cd: ", 4);
+			ft_putstr_fd(*old, 2);
+			write(2, "No such file or directory\n", 26);
+			free(*current_dir);
+		}
+		*exit_status = 0;
+	}
+	else
+	{
+		ft_putstr_fd("OLDPWD not settt\n", 2);
+		*exit_status = 1;
+	}
+}
+
+void	minuscase(char **old, int *exit_status, char **env)
+{
+	char		*current_dir;
+	char		*en_old;
 	static int	f;
 
 	en_old = get_oldpwd(env);
@@ -105,7 +126,7 @@ void	minuscase(char **old, int *exit_status, char **env, t_maintools *tools)
 		free(*old);
 		*old = NULL;
 		f = 1;
-		tools->exit_status = 1;
+		*exit_status = 1;
 		return ;
 	}
 	else if (en_old != NULL)
@@ -114,30 +135,7 @@ void	minuscase(char **old, int *exit_status, char **env, t_maintools *tools)
 		*old = en_old;
 		f = 0;
 	}
-	if (*old != NULL)
-	{
-		current_dir = get_pwd2(env, exit_status);
-		if (chdir(*old) == 0)
-		{
-			printf("%s\n", *old);
-			free(*old);
-			*old = current_dir;
-		}
-		else
-		{
-			*exit_status = 1;
-			write(2, "cd: ", 4);
-			ft_putstr_fd(*old, 2);
-			write(2, "No such file or directory\n", 26);
-			free(current_dir);
-		}
-		tools->exit_status = 0;
-	}
-	else
-	{
-		ft_putstr_fd("OLDPWD not settt\n", 2);
-		tools->exit_status = 1;
-	}
+	minus_func(old, env, exit_status, &current_dir);
 }
 
 void	no_file(char *str, int *exit_status)
@@ -146,112 +144,131 @@ void	no_file(char *str, int *exit_status)
 	write(2, "cd: ", 4);
 	ft_putstr_fd(str, 2);
 	write(2, "No such file or directory\n", 26);
-	// free(current_dir);
 }
 
-char *remove_last_dirs(char *path) {
-    int len = strlen(path);
-    int i = len - 1, up_dirs = 0;
-
-    // Count how many ".." are at the end
-    while (i > 1) {
-        if (path[i] == '.' && path[i-1] == '.' && path[i-2] == '/') {
-            up_dirs++;
-            i -= 3;  // Move past "/.."
-        } else if (path[i] == '/') {
-            i--;
-        } else {
-            break;
-        }
-    }
-
-    if (up_dirs == 0) {
-        return strdup(path); // No ".." at the end, return a copy of the original path
-    }
-
-    // Allocate a new string for the result
-    char *new_path = strdup(path);
-    if (!new_path) return NULL; // Check for allocation failure
-
-    // Traverse backward to remove directories
-    i = strlen(new_path) - 1;
-	up_dirs = up_dirs * 2;
-    while (up_dirs > 0 && i >= 0) {
-        // Skip trailing slashes
-        if (new_path[i] == '/') {
-            i--;
-            continue;
-        }
-
-        // Find the next directory separator from the end
-        while (i >= 0 && new_path[i] != '/') {
-            i--;
-        }
-
-        up_dirs--;
-    }
-
-    // Remove trailing slashes and truncate the string
-    while (i >= 0 && new_path[i] == '/') {
-        i--;
-    }
-
-    // Truncate the string at the new position
-    new_path[i + 1] = '\0';
-
-    return new_path;
-}
-
-char *rm_last_dir(char *path)
+void	rm_dr_helper(char **new_path, char *path, int *i, int *dd_len)
 {
-    char *last_slash;
-    char *new_path;
-    char *concat_path;
+	(*new_path) = strdup(path);
+	*i = ft_strlen((*new_path)) - 1;
+	*dd_len = *dd_len * 2;
+	while (*dd_len > 0 && *i >= 0)
+	{
+		if ((*new_path)[*i] == '/')
+		{
+			(*i)--;
+			continue ;
+		}
+		while (*i >= 0 && (*new_path)[*i] != '/')
+			(*i)--;
+		(*dd_len)--;
+	}
+	while (*i >= 0 && (*new_path)[*i] == '/')
+		(*i)--;
+	(*new_path)[*i + 1] = '\0';
+}
 
-    new_path = remove_last_dirs(path);
-    if (!new_path)
-        return NULL;
-    last_slash = strrchr(new_path, '/');
-    if (last_slash)
-        *last_slash = '\0';
-    if (access(new_path, F_OK) == 0 || ft_strlen(new_path) == 0) {
-        return (free(new_path), ft_strdup(path));
-    } else {
-        free(new_path);
-		printf("cd: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory\n");
-        concat_path = malloc(strlen(path) + 4);
-        if (!concat_path)
-            return NULL;
-        strcpy(concat_path, path);
-        strcat(concat_path, "/..");
-        return concat_path;
-    }
+char	*remove_last_dirs(char *path)
+{
+	int		len;
+	int		i;
+	int		dd_len;
+	char	*new_path;
+
+	len = ft_strlen(path);
+	i = len - 1;
+	dd_len = 0;
+	while (i > 1)
+	{
+		if (path[i] == '.' && path[i - 1] == '.' && path[i - 2] == '/')
+		{
+			dd_len++;
+			i -= 3;
+		}
+		else if (path[i] == '/')
+			i--;
+		else
+			break ;
+	}
+	if (dd_len == 0)
+		return (ft_strdup(path));
+	rm_dr_helper(&new_path, path, &i, &dd_len);
+	return (new_path);
+}
+
+char	*rm_last_dir(char *path)
+{
+	char	*last_slash;
+	char	*new_path;
+	char	*concat_path;
+
+	new_path = remove_last_dirs(path);
+	if (!new_path)
+		return (NULL);
+	last_slash = ft_strrchr(new_path, '/');
+	if (last_slash)
+		*last_slash = '\0';
+	if (access(new_path, F_OK) == 0 || ft_strlen(new_path) == 0)
+		return (free(new_path), ft_strdup(path));
+	else
+	{
+		free(new_path);
+		printf("cd: error retrieving current directory: getcwd: ");
+		printf("cannot access parent directories: No such file or directory\n");
+		concat_path = malloc(ft_strlen(path) + 4);
+		if (!concat_path)
+			return (NULL);
+		ft_strcpy(concat_path, path);
+		ft_strcat(concat_path, "/..");
+		return (concat_path);
+	}
 }
 
 void	add_pwd_2(char *pwd, t_maintools *tools)
 {
-	t_maintools t_tools;
+	t_maintools	t_tools;
 
 	if (env_search("PWD", tools->en) != NULL)
 	{
 		t_tools.strs = malloc(3 * sizeof (char *));
 		if (!t_tools.strs)
-		exit(1);
+			exit(1);
 		t_tools.strs[0] = ft_strdup("jnde");
 		t_tools.strs[1] = malloc(5 + ft_strlen(pwd) + 1);
 		ft_strcpy(t_tools.strs[1], "PWD=");
-		strncat(t_tools.strs[1], pwd, ft_strlen(pwd));
+		ft_strncat(t_tools.strs[1], pwd, ft_strlen(pwd));
 		t_tools.strs[2] = NULL;
 		add_exp(&t_tools, &tools->ex, &tools->en, 0);
 		free_args(&t_tools.strs);
 	}
 }
 
+void	cd_func(t_maintools *tools, char **old, char **current_dir, char *str)
+{
+	char	*t;
+	char	*t2;
+
+	t = without_quotes_ret(str, 0);
+	if (chdir(t) == 0)
+	{
+		if (ft_strcmp(t, "..") == 0)
+		{
+			t2 = rm_last_dir(*current_dir);
+			add_pwd_2(t2, tools);
+			free(t2);
+		}
+		free(*old);
+		*old = ft_strdup(*current_dir);
+		tools->exit_status = 0;
+	}
+	else
+		no_file(t, &tools->exit_status);
+	free(*current_dir);
+	free(t);
+}
+
 void	do_cd(char **env, char *str, char **old, t_maintools *tools)
 {
 	char	*current_dir;
-	char	*t;
-	char	*t2;
 
 	current_dir = get_pwd2(env, &tools->exit_status);
 	if (ft_strlen(str) == 1 && str[0] == '~')
@@ -261,28 +278,12 @@ void	do_cd(char **env, char *str, char **old, t_maintools *tools)
 	}
 	else if (ft_strlen(str) == 1 && str[0] == '-')
 	{
-		minuscase(old, &tools->exit_status, env, tools);
+		minuscase(old, &tools->exit_status, env);
 		free(current_dir);
 	}
 	else
 	{
-		t = without_quotes_ret(str, 0);
-		if (chdir(t) == 0)
-		{
-			if (ft_strcmp(t, "..") == 0)
-			{
-				t2 = rm_last_dir(current_dir);
-				add_pwd_2(t2, tools);
-				free(t2);
-			}
-			free(*old);
-			*old = ft_strdup(current_dir);
-			tools->exit_status = 0;
-		}
-		else
-			no_file(t, &tools->exit_status);
-		free(current_dir);
-		free(t);
+		cd_func(tools, old, &current_dir, str);
 	}
 }
 

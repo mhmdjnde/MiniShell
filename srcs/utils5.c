@@ -40,3 +40,69 @@ int	args_len(char **strs)
 		i++;
 	return (i);
 }
+
+char	*ft_strcat(char *dest, char *src)
+{
+	char	*odest;
+	int		i;
+	int		a;
+
+	odest = dest;
+	i = 0;
+	a = 0;
+	while (dest[i] != '\0')
+	{
+		i++;
+	}
+	while (src[a] != '\0')
+	{
+		dest[i] = src[a];
+		i++;
+		a++;
+	}
+	dest[i] = '\0';
+	return (odest);
+}
+
+char	*ft_strrchr(char *s, int c)
+{
+	int		i;
+	int		t;
+	char	*str;
+
+	i = ft_strlen(s) - 1;
+	t = ft_strlen(s);
+	str = (char *) s;
+	if (c == '\0')
+		return (&str[t]);
+	while (i >= 0)
+	{
+		if (str[i] == (char) c)
+			return (&str[i]);
+		i--;
+	}
+	return (NULL);
+}
+
+char	*ft_strncat(char *dest, char *src, unsigned int nb)
+{
+	char			*odest;
+	int				i;
+	unsigned int	a;
+
+	odest = dest;
+	i = 0;
+	a = 0;
+	while (dest[i] != '\0')
+	{
+		i++;
+	}
+	while (src[a] != '\0' && a < nb)
+	{
+		dest[i] = src[a];
+		i++;
+		a++;
+	}
+	dest[i] = '\0';
+	return (odest);
+}
