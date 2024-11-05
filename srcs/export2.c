@@ -6,12 +6,13 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/05 17:28:20 by fdahouk           #+#    #+#             */
-/*   Updated: 2024/09/29 16:31:17 by marvin           ###   ########.fr       */
+/*   Updated: 2024/11/05 03:13:23 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
+//return the index of the variable in the env
 int	ret_s_index(char *str, char **env)
 {
 	int	i;
@@ -29,6 +30,7 @@ int	ret_s_index(char *str, char **env)
 	return (-1);
 }
 
+//check the args of the export command
 int	exp_arg_check(char *str)
 {
 	int		i;
@@ -55,6 +57,7 @@ int	exp_arg_check(char *str)
 	return (1);
 }
 
+//return the variable name (to the '=')
 char	*ret_to_equal(char *str)
 {
 	int		i;
@@ -71,6 +74,7 @@ char	*ret_to_equal(char *str)
 	return (r);
 }
 
+//checks if a variable if availble
 void	check_availble(int idx, char ***en, char **args, int i)
 {
 	if (idx == -1)
@@ -82,6 +86,7 @@ void	check_availble(int idx, char ***en, char **args, int i)
 	}
 }
 
+//add to env functionality
 void	func_add_exp(int i, char ***en, t_maintools *tools, char ***ex)
 {
 	char	*prefix;
@@ -108,6 +113,38 @@ void	func_add_exp(int i, char ***en, t_maintools *tools, char ***ex)
 	}
 }
 
+int	p_exp_err(t_maintools *tools, int i, char *error, int ext)
+{
+	write(2, error, ft_strlen(error));
+	ft_putstr_fd((tools->strs)[i], 2);
+	tools->exit_status = ext;
+	return (1);
+}
+
+void	check_if_minus(t_maintools *tools, int tab[2])
+{
+	if ((tools->strs)[tab[0]][0] == '-')
+	{
+		tab[1] = p_exp_err(tools, tab[0], "invalid option\n", 1);
+		tools->exit_status = 2;
+	}
+	else
+	{
+		write(2, "Bash: export: ", 14);
+		ft_putstr_fd((tools->strs)[tab[0]], 2);
+		write(2, " not valid idenfier\n", 20);
+		tools->exit_status = 1;
+		tab[1] = 1;
+	}
+}
+
+void	edited_exit_status(t_maintools *tools, int f, int sf)
+{
+	if (f == 0 && sf == 0)
+		tools->exit_status = 0;
+}
+
+//add a variable to the environment
 void	add_exp(t_maintools *tools, char ***ex, char ***en, int sf)
 {
 	int		tab[2];
@@ -144,7 +181,6 @@ void	deleted_pwd(t_maintools *tools, t_maintools *t_tools, int f)
 	t = 0;
 	if (f != 1 && tools->cdf == 1)
 	{
-		// tools->cd = NULL;
 		t_tools->strs = malloc(3 * sizeof(char *));
 		t_tools->strs[0] = ft_strdup("jnde");
 		t_tools->strs[1] = ft_strdup("OLDPWD");
@@ -154,6 +190,7 @@ void	deleted_pwd(t_maintools *tools, t_maintools *t_tools, int f)
 	}
 }
 
+//edit the current PWD
 void	edit_pwd(char ***ex, char ***en, t_maintools *tools)
 {
 	char		*pwd;
@@ -181,7 +218,8 @@ void	edit_pwd(char ***ex, char ***en, t_maintools *tools)
 		deleted_pwd(tools, &t_tools, f);
 }
 
-void	add_pwd(char ***ex, char ***en)
+//add the PWD to the env
+void	   add_pwd(char ***ex, char ***en)
 {
 	char		*pwd;
 	t_maintools	t_tools;
@@ -201,6 +239,7 @@ void	add_pwd(char ***ex, char ***en)
 	free_args(&t_tools.strs);
 }
 
+//edit the OLDPWD after changing dir
 void	edit_oldpwd(char ***ex, char ***en, t_maintools *tools)
 {
 	char		*oldpwd;
@@ -221,35 +260,4 @@ void	edit_oldpwd(char ***ex, char ***en, t_maintools *tools)
 		add_exp(&t_tools, ex, en, 1);
 		free_args(&t_tools.strs);
 	}
-}
-
-int	p_exp_err(t_maintools *tools, int i, char *error, int ext)
-{
-	write(2, error, ft_strlen(error));
-	ft_putstr_fd((tools->strs)[i], 2);
-	tools->exit_status = ext;
-	return (1);
-}
-
-void	check_if_minus(t_maintools *tools, int tab[2])
-{
-	if ((tools->strs)[tab[0]][0] == '-')
-	{
-		tab[1] = p_exp_err(tools, tab[0], "invalid option\n", 1);
-		tools->exit_status = 2;
-	}
-	else
-	{
-		write(2, "Bash: export: ", 14);
-		ft_putstr_fd((tools->strs)[tab[0]], 2);
-		write(2, " not valid idenfier\n", 20);
-		tools->exit_status = 1;
-		tab[1] = 1;
-	}
-}
-
-void	edited_exit_status(t_maintools *tools, int f, int sf)
-{
-	if (f == 0 && sf == 0)
-		tools->exit_status = 0;
 }

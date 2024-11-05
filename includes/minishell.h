@@ -17,7 +17,6 @@
 # include <signal.h>
 # include <unistd.h>
 # include <stdlib.h>
-# include <string.h>
 # include <readline/readline.h>
 # include <readline/history.h>
 # include <fcntl.h>
@@ -57,6 +56,7 @@ typedef struct s_maintools
 	int			exit_status;
 	char		**cmds;
 	int			cdf;
+	int			pf;
 }	t_maintools;
 
 typedef struct s_redmain
@@ -92,6 +92,7 @@ typedef struct s_pipetools
 	int		status;
 	int		num_cmds;
 	pid_t	*pids;
+	char	**tmps;
 }	t_pipetools;
 
 int			ft_strlen(char *str);
@@ -169,24 +170,10 @@ void		exp_q(char **ex);
 int			empty(char *str);
 void		q_args(char **args);
 void		q_args2(char **args);
-int			*red_run(char **str, t_tmptools *tmp, char **en, int *exit_status);
+int			*red_run(char **str, t_tmptools *tmp, char **en, t_maintools *t);
 int			fix_after_red(int in, int out, int *fd);
 void		del_temp(char *tp, char **en);
 int			args_len(char **strs);
-//  exec_other functions start
-void		init_vars(t_check_ve *vars, int *exit_status);
-void		init_vars2(t_check_ve *vars, int f, char **args, char **env);
-void		print_in_checkve(char **args, int f, int *exit_status);
-void		calc_dir_lenth(t_check_ve *vars);
-void		dup_into_dir(t_check_ve *vars);
-void		increment_i(t_check_ve *vars);
-int			returned_status(t_check_ve *vars, int *exit_status);
-int			print_in_chek_absolute_no_file(char **args);
-int			print_in_chek_absolute_denied(char **args, int f, int *exit_status);
-int			print_in_chek_absolute_dir(char **args, int f, int *exit_status);
-int			get_j_in_getcmd(char *str);
-void		free_2charpointers(char *dir, char *cmd_path);
-void		print_error(char *error);
 //  exec_other functions end 
 int			pipe_check(char *str);
 int			run_one_cmd(t_maintools *tools);
@@ -195,13 +182,7 @@ void		fill_status(char **args);
 void		setup_signals(void);
 void		ignore_signals(void);
 void		restore_signals(void);
-void		free_in_pwd(char **args, char *temp);
-void		print_free_cwd(char *cwd);
-char		*increment_in_helper3(int *i, char *str);
-void		print_and_exit_status(int *exit_status);
-void		edited_exit_status(t_maintools *tools, int f, int sf);
 void		check_if_minus(t_maintools *tools, int tab[2]);
-int			p_exp_err(t_maintools *tools, int i, char *error, int ext);
 int			*init_int_tab(void);
 void		print_cr(char cr);
 int			edit_red_ext(int *exit_status);
@@ -211,5 +192,6 @@ void		run_pipes(t_maintools *tools);
 char		*get_pwd2(char **env, int	*exit_status);
 void		edit_oldpwd(char ***ex, char ***en, t_maintools *tools);
 void		add_pwd(char ***ex, char ***en);
+void		replace_heredoc_with_file(char **input, char *replacement);
 
 #endif

@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/21 19:26:53 by mjoundi           #+#    #+#             */
-/*   Updated: 2024/09/14 00:47:02 by marvin           ###   ########.fr       */
+/*   Updated: 2024/11/05 02:49:15 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@ void	free_in_error(char **new, int *i)
 	free(new);
 }
 
+//copy the original env
 char	**env_copy(char **env)
 {
 	int		rows;

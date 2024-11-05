@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   export3.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fdahouk <fdahouk@student.42.fr>            +#+  +:+       +#+        */
+/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/05 17:33:35 by fdahouk           #+#    #+#             */
-/*   Updated: 2024/09/27 16:14:34 by fdahouk          ###   ########.fr       */
+/*   Updated: 2024/11/05 03:13:44 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,7 @@ int	shlvl_func(int *lvl, char **str, char **new_lvl_str, char ***args)
 	return (1);
 }
 
+//inrement the SHLVL variable
 void	inc_shlvl(char ***ex, char ***en)
 {
 	int			lvl;

@@ -6,12 +6,13 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/19 17:03:44 by mjoundi           #+#    #+#             */
-/*   Updated: 2024/09/20 23:44:50 by marvin           ###   ########.fr       */
+/*   Updated: 2024/11/05 03:02:03 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
+//checking num arg with no quotations
 int	arg_no_q(char **args, int *i, int *sf, int *exit_status)
 {
 	while (args[1][*i] != '\0' && args[1][*i] != '\'' && args[1][*i] != '"')
@@ -43,6 +44,7 @@ void	sign_check(char **args, int *i, int *sf)
 	}
 }
 
+//checking num arg with double quotations
 int	arg_2q(char **args, int *i, int *sf, int *exit_status)
 {
 	if (args[1][(*i)] == '"')
@@ -72,6 +74,7 @@ int	arg_2q(char **args, int *i, int *sf, int *exit_status)
 	return (1);
 }
 
+//checking num arg with single quotation
 int	arg_1q(char **args, int *i, int *sf, int *exit_status)
 {
 	if (args[1][*i] == '\'')
@@ -101,6 +104,13 @@ int	arg_1q(char **args, int *i, int *sf, int *exit_status)
 	return (1);
 }
 
+void	print_and_exit_status(int *exit_status)
+{
+	write(2, "too many arguments\n", 17);
+	*exit_status = 1;
+}
+
+//check the args of the echo command
 void	exit_args_check(char **args, int *exit_status)
 {
 	int	i;
@@ -128,10 +138,4 @@ void	exit_args_check(char **args, int *exit_status)
 				i++;
 		}
 	}
-}
-
-void	print_and_exit_status(int *exit_status)
-{
-	write(2, "too many arguments\n", 17);
-	*exit_status = 1;
 }

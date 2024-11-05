@@ -3,15 +3,31 @@
 /*                                                        :::      ::::::::   */
 /*   dollar.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fdahouk <fdahouk@student.42.fr>            +#+  +:+       +#+        */
+/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/27 18:52:36 by mjoundi           #+#    #+#             */
-/*   Updated: 2024/09/27 16:19:54 by fdahouk          ###   ########.fr       */
+/*   Updated: 2024/11/05 02:40:32 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
+//checking if its '$$' or the '$?' case
+char	*dlr_qm(char *str, int *i)
+{
+	if (str[*i - 1] == '$')
+		return ("$$");
+	else
+		return ("$?");
+}
+
+char	*increment_in_helper3(int *i, char *str)
+{
+	*i += 2;
+	return (dlr_qm(str, i));
+}
+
+//parsing the variable name
 int	helper2(char *str, int *i, int *index)
 {
 	if (*i != 0 && str[*i - 1] == '\\')
@@ -36,6 +52,7 @@ int	helper2(char *str, int *i, int *index)
 	return (1);
 }
 
+//parsing the variable name
 void	var_ret_helper1(char *str, int *i, int *double_quotes)
 {
 	if (*double_quotes == 0 && str[*i] == '"')
@@ -58,14 +75,7 @@ void	var_ret_helper1(char *str, int *i, int *double_quotes)
 	}
 }
 
-char	*dlr_qm(char *str, int *i)
-{
-	if (str[*i - 1] == '$')
-		return ("$$");
-	else
-		return ("$?");
-}
-
+//parsing the variable name
 char	*helper3(char *str, int *i, int *index)
 {
 	int		double_quotes;
@@ -95,6 +105,8 @@ char	*helper3(char *str, int *i, int *index)
 	return (str);
 }
 
+//this function return the name of the varriable after
+//the '$' sign in the string
 char	*var_ret(char *str, int *i)
 {
 	int		index[2];
@@ -120,6 +132,7 @@ char	*var_ret(char *str, int *i)
 	return (temp);
 }
 
+//take a string and add '=' at the end
 char	*add_equal(char *str)
 {
 	char	*temp;
@@ -133,6 +146,7 @@ char	*add_equal(char *str)
 	return (temp);
 }
 
+//make sure if the variable as parameter is in env
 char	*env_search(char *str, char **env)
 {
 	char	*tos;
@@ -155,6 +169,7 @@ char	*env_search(char *str, char **env)
 	return (NULL);
 }
 
+//edit the str by changing the variables to its value
 void	edit_str(char **str, int start, int end, char *env_value)
 {
 	int		new_len;
@@ -176,6 +191,7 @@ void	edit_str(char **str, int start, int end, char *env_value)
 	*str = new_str;
 }
 
+//the '$$' case to get the pid
 void	double_dlr(int *start, int *i, int *end, char **str)
 {
 	char	*env_value;
@@ -191,6 +207,7 @@ void	double_dlr(int *start, int *i, int *end, char **str)
 	free(env_value);
 }
 
+// '$?' case to get the status of the last command
 void	dollar_qm(int tab[3], char **str, int *exit_status)
 {
 	char	*env_value;
@@ -214,6 +231,7 @@ void	restart_i(int *i, char *env_value, int start)
 		*i = start;
 }
 
+//main function of replasing the variables by its values
 void	var_in_env(char **str, char **env, int *exit_status)
 {
 	char	*var_name;
@@ -241,10 +259,4 @@ void	var_in_env(char **str, char **env, int *exit_status)
 			}
 		}
 	}
-}
-
-char	*increment_in_helper3(int *i, char *str)
-{
-	*i += 2;
-	return (dlr_qm(str, i));
 }

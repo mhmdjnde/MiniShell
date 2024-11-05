@@ -12,6 +12,7 @@
 
 #include "minishell.h"
 
+//counting in case of quotes
 int	process_quotes(char *str, int i, char quote)
 {
 	i++;
@@ -22,6 +23,7 @@ int	process_quotes(char *str, int i, char quote)
 	return (i);
 }
 
+//counting when there is no quotes
 int	process_non_quotes(char *str, int i, int *ac)
 {
 	while (str[i] != ' ' && str[i] != '\'' && str[i] != '"' && str[i] != '\0')
@@ -35,6 +37,7 @@ int	process_non_quotes(char *str, int i, int *ac)
 	return (i);
 }
 
+//the counting proccess of the arguments in case of quotes and not
 void	ac_helper(char *str, int *i, int *ac)
 {
 	if (str[*i] == '"')
@@ -45,6 +48,7 @@ void	ac_helper(char *str, int *i, int *ac)
 		*i = process_non_quotes(str, *i, ac);
 }
 
+//this function return  the number of arguments of the command
 int	count_args(char *str, char *cmd)
 {
 	int	i;

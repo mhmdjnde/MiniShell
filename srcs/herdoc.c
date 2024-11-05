@@ -12,6 +12,7 @@
 
 #include "minishell.h"
 
+//return the index of the last herdoc
 int	last_hd_index(t_redtools *red)
 {
 	int	i;
@@ -28,6 +29,7 @@ int	last_hd_index(t_redtools *red)
 	return (l);
 }
 
+//functionality of not the last heredoc
 void	func_hd_nl(char	*hd, char **en)
 {
 	char	*str;
@@ -51,6 +53,7 @@ void	func_hd_nl(char	*hd, char **en)
 	}
 }
 
+//functionality of thhe last heredoc
 void	func_hd_l(int fd, char	**en, char *hd)
 {
 	char	*str;
@@ -75,6 +78,7 @@ void	func_hd_l(int fd, char	**en, char *hd)
 	}
 }
 
+//generate the temp file name
 char	*tmp_file_gen(void)
 {
 	char	*str;
@@ -102,6 +106,7 @@ void	func_nl(int l, t_redtools **red, char **en, int *i)
 	}
 }
 
+//main functionality of the herdoc
 char	*heredoc(t_redtools **red, char **en)
 {
 	int		i;
@@ -130,17 +135,3 @@ char	*heredoc(t_redtools **red, char **en)
 		return (ft_strdup(tmp));
 	return (NULL);
 }
-
-// int main(void)
-// {
-//     // Test case setup with multiple heredocs
-//     t_redtools red[4] = {
-//         {"STOP", 4},    // First heredoc with delimiter "STOP"
-//         {"QUIT", 4},    // Second heredoc with delimiter "QUIT"
-//         {"END", 4},     // Third heredoc with delimiter "END"
-//         {NULL, 0}       // End of redirections
-//     };
-//     heredoc(red, NULL);
-
-//     return 0;
-// }

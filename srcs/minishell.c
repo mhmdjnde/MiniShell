@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/27 19:07:27 by mjoundi           #+#    #+#             */
-/*   Updated: 2024/09/29 22:03:14 by marvin           ###   ########.fr       */
+/*   Updated: 2024/11/02 02:38:02 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -100,6 +100,7 @@ void	ini_tools_1(t_maintools *tools, char **env)
 	inc_shlvl(&tools->ex, &tools->en);
 	edit_oldpwd(&tools->ex, &tools->en, tools);
 	add_pwd(&tools->ex, &tools->en);
+	tools->pf = 0;
 }
 
 int	ini_loop(t_maintools *tools)
@@ -123,6 +124,7 @@ int	ini_loop(t_maintools *tools)
 		free(tools->str);
 		return (0);
 	}
+	tools->pf = 0;
 	return (1);
 }
 
@@ -135,7 +137,7 @@ int	check_before_run(t_maintools *t)
 		t->exit_status = 2;
 		return (0);
 	}
-	t->tmp.fd = red_run(&t->str, &t->tmp, t->en, &t->exit_status);
+	t->tmp.fd = red_run(&t->str, &t->tmp, t->en, t);
 	if (t->tmp.fd == NULL)
 	{
 		if (t->tmp.tmp)
@@ -318,7 +320,10 @@ void	exec(t_maintools *tools)
 
 void	clean(t_maintools *tools)
 {
-	del_temp(tools->tmp.tmp, tools->en);
+	if (tools->pf != 1)
+		del_temp(tools->tmp.tmp, tools->en);
+	if (tools->tmp.tmp && tools->pf != 1)
+		free(tools->tmp.tmp);
 	fix_after_red(tools->in, tools->out, tools->tmp.fd);
 	edit_oldpwd(&tools->ex, &tools->en, tools);
 	edit_pwd(&tools->ex, &tools->en, tools);

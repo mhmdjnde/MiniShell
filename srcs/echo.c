@@ -6,12 +6,13 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/20 18:27:32 by mjoundi           #+#    #+#             */
-/*   Updated: 2024/09/29 16:21:08 by marvin           ###   ########.fr       */
+/*   Updated: 2024/11/05 02:42:29 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
+//check the '-n' flag
 int	n_check(char *str)
 {
 	int	i;
@@ -28,6 +29,7 @@ int	n_check(char *str)
 	return (0);
 }
 
+//check the first '-n' flags
 void	skip_n(int *i, char **strs, int *nf)
 {
 	while (strs[*i] != NULL && parse_flags(strs[*i], "-n") >= 0)
@@ -39,6 +41,7 @@ void	skip_n(int *i, char **strs, int *nf)
 	}
 }
 
+//check the arguments of the echo command
 void	echo_args_check(char **strs, t_maintools *tools)
 {
 	int		i;

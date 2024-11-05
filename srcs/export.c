@@ -12,6 +12,7 @@
 
 #include "minishell.h"
 
+//copy the old env to the new
 int	copy_old(int *i, char ***new, int rows, char **env)
 {
 	while (*i < rows)
@@ -28,6 +29,7 @@ int	copy_old(int *i, char ***new, int rows, char **env)
 	return (1);
 }
 
+//add a new variable to the env
 char	**export_enc(char **env, char *var)
 {
 	int		rows;
@@ -55,6 +57,7 @@ char	**export_enc(char **env, char *var)
 	return (new);
 }
 
+//sort the env for the export command without args
 void	sort_env(char **arr, int n)
 {
 	int		i;
@@ -105,6 +108,7 @@ int	check_equal(char *str)
 	return (-1);
 }
 
+// add double quotes after the '='
 char	*add_quotes(char *str)
 {
 	int		i;

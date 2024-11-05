@@ -12,6 +12,21 @@
 
 #include "minishell.h"
 
+void	print_free_cwd(char *cwd)
+{
+	printf("%s\n", cwd);
+	free(cwd);
+}
+
+void	free_in_pwd(char **args, char *temp)
+{
+	free(temp);
+	free_args(&args);
+}
+
+// this is the functionality of the pwd command
+// we check in case of invalid flag adn then we get the 
+// current working directory
 void	get_pwd(char *str, int *exit_status, char **en)
 {
 	char	*cwd;
@@ -38,6 +53,10 @@ void	get_pwd(char *str, int *exit_status, char **en)
 	*exit_status = 0;
 }
 
+//this function  is used to get the current working directory
+// if the current directory is not found(get deleted) then we try
+//getting the current directory from the  environment variables
+//if the PWD variable is deleted we return NULL
 char	*get_pwd2(char **env, int	*exit_status)
 {
 	char	*cur;
@@ -59,6 +78,9 @@ char	*get_pwd2(char **env, int	*exit_status)
 	}
 }
 
+//this is the case of '~' for the cd
+//it will get the HOME directory from the env adn then go to HOME
+//if HOME is not set wi will  print an error message
 void	tildacase(char **env, char **old, int *exit_status)
 {
 	if (chdir(env_search("HOME", env)) == 0)
@@ -72,6 +94,7 @@ void	tildacase(char **env, char **old, int *exit_status)
 	}
 }
 
+//this function is used to return the OLDPWD fromt he environment
 char	*get_oldpwd(char **env)
 {
 	int		exit_status;
@@ -85,6 +108,9 @@ char	*get_oldpwd(char **env)
 		return (NULL);
 }
 
+//this is the functionality of the '-' case in cd
+//it will get the OLDPWD and go to that directory
+//also it will check if OLDPWD is not set
 void	minus_func(char **old, char **env, int *exit_status, char **current_dir)
 {
 	if (*old != NULL)
@@ -113,6 +139,7 @@ void	minus_func(char **old, char **env, int *exit_status, char **current_dir)
 	}
 }
 
+//the main function of the '-' case for cd
 void	minuscase(char **old, int *exit_status, char **env)
 {
 	char		*current_dir;
@@ -138,6 +165,7 @@ void	minuscase(char **old, int *exit_status, char **env)
 	minus_func(old, env, exit_status, &current_dir);
 }
 
+//print an error message when no such file or directory
 void	no_file(char *str, int *exit_status)
 {
 	*exit_status = 1;
@@ -146,9 +174,10 @@ void	no_file(char *str, int *exit_status)
 	write(2, "No such file or directory\n", 26);
 }
 
+//the part of the no directory case where we remove the last dirs
 void	rm_dr_helper(char **new_path, char *path, int *i, int *dd_len)
 {
-	(*new_path) = strdup(path);
+	(*new_path) = ft_strdup(path);
 	*i = ft_strlen((*new_path)) - 1;
 	*dd_len = *dd_len * 2;
 	while (*dd_len > 0 && *i >= 0)
@@ -167,6 +196,7 @@ void	rm_dr_helper(char **new_path, char *path, int *i, int *dd_len)
 	(*new_path)[*i + 1] = '\0';
 }
 
+//pt 2
 char	*remove_last_dirs(char *path)
 {
 	int		len;
@@ -195,6 +225,11 @@ char	*remove_last_dirs(char *path)
 	return (new_path);
 }
 
+//this function is for the case where we do "cd .." and 
+//we are in a deleted directory, then we need to remove the
+//last directories the number of times we did "cd .."
+//to check if we did reach a true path
+//pt 1
 char	*rm_last_dir(char *path)
 {
 	char	*last_slash;
@@ -223,6 +258,10 @@ char	*rm_last_dir(char *path)
 	}
 }
 
+//this function edit the PWD variable in the env
+//but the difference between this one the the other
+//add_pwd function is that in this one we have the pass as parameter
+//and here we are addng only when we have the PWD variable already there
 void	add_pwd_2(char *pwd, t_maintools *tools)
 {
 	t_maintools	t_tools;
@@ -242,6 +281,7 @@ void	add_pwd_2(char *pwd, t_maintools *tools)
 	}
 }
 
+//main func of the cd command with its cases
 void	cd_func(t_maintools *tools, char **old, char **current_dir, char *str)
 {
 	char	*t;
@@ -266,6 +306,7 @@ void	cd_func(t_maintools *tools, char **old, char **current_dir, char *str)
 	free(t);
 }
 
+//checking the parameter of the cd command
 void	do_cd(char **env, char *str, char **old, t_maintools *tools)
 {
 	char	*current_dir;
@@ -282,19 +323,5 @@ void	do_cd(char **env, char *str, char **old, t_maintools *tools)
 		free(current_dir);
 	}
 	else
-	{
 		cd_func(tools, old, &current_dir, str);
-	}
-}
-
-void	print_free_cwd(char *cwd)
-{
-	printf("%s\n", cwd);
-	free(cwd);
-}
-
-void	free_in_pwd(char **args, char *temp)
-{
-	free(temp);
-	free_args(&args);
 }

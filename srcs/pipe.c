@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/18 15:22:05 by marvin            #+#    #+#             */
-/*   Updated: 2024/09/29 22:15:06 by marvin           ###   ########.fr       */
+/*   Updated: 2024/11/02 02:46:22 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -147,7 +147,75 @@ char	**parse_pipe(char *str)
 	return (free(tab), cmds);
 }
 
-int	check_token_err(char **cmds)
+void	her_run(char **str, t_tmptools *tmp, char **en, t_maintools *t)
+{
+	t_redtools	*red;
+	int			i;
+
+	i = 0;
+	red = red_after_cmd(str, &t->exit_status);
+	while (red != NULL && red[i].file != NULL)
+	{
+		tmp->tmp = red[i].file;
+		red[i].file = without_quotes_ret(tmp->tmp, 0);
+		i++;
+		free(tmp->tmp);
+	}
+	if (red == NULL)
+		return ;
+	tmp->tmp = heredoc(&red, en);
+	free_red(red);
+}
+
+void	heredoc_before_err(t_maintools *t, int err_i, char ***tmps)
+{
+	int		i;
+	char	**temp;
+
+	i = 0;
+	*tmps = (char **)malloc(1 * sizeof(char *));
+	(*tmps)[0] = NULL;
+	temp = env_copy(t->cmds);
+	while (i < err_i && temp[i] != NULL)
+	{
+		her_run(&temp[i], &t->tmp, t->en, t);
+		if (t->tmp.tmp)
+		{
+			replace_heredoc_with_file(&t->cmds[i], t->tmp.tmp);
+			*tmps = export_enc(*tmps, t->tmp.tmp);
+			free(t->tmp.tmp);
+			t->tmp.tmp = NULL;
+		}
+		i++;
+	}
+	free_args(&temp);
+}
+
+void	her_pipe(t_maintools *t, char ***tmps)
+{
+	int		i;
+	char	**temp;
+
+	i = 0;
+	temp = env_copy(t->cmds);
+	*tmps = (char **)malloc(1 * sizeof(char *));
+	(*tmps)[0] = NULL;
+	while (temp[i] != NULL)
+	{
+		her_run(&temp[i], &t->tmp, t->en, t);
+		if (t->tmp.tmp)
+		{
+			replace_heredoc_with_file(&t->cmds[i], t->tmp.tmp);
+			*tmps = export_enc(*tmps, t->tmp.tmp);
+			free(t->tmp.tmp);
+			t->tmp.tmp = NULL;
+		}
+		i++;
+	}
+	free_args(&temp);
+}
+
+int	check_token_err(char **cmds, t_maintools *t, char ***tmps)
 {
 	t_redtools	*red;
 	char		*temp;
@@ -161,7 +229,10 @@ int	check_token_err(char **cmds)
 		temp = ft_strdup(cmds[i]);
 		red = red_after_cmd(&temp, &es);
 		if (red == NULL)
+		{
+			heredoc_before_err(t, i, tmps);
 			return (free(temp), 0);
+		}
 		free(temp);
 		free_red(red);
 		i++;
@@ -276,11 +347,41 @@ void	wait_pipe(t_maintools *tools, t_pipetools *pt)
 	tools->exit_status = WEXITSTATUS(pt->status);
 }
 
+void	pipes_helper(t_maintools *tools, t_pipetools *pt)
+{
+	wait_pipe(tools, pt);
+	free(pt->pids);
+	pt->i = 0;
+	while (pt->tmps[pt->i] != NULL)
+	{
+		del_temp(pt->tmps[pt->i], tools->en);
+		pt->i++;
+	}
+	free_args(&pt->tmps);
+	if (pt->prev_fd != -1)
+		close(pt->prev_fd);
+	setup_signals();
+}
+
+void	syn_err(t_maintools *tools, t_pipetools *pt)
+{
+	tools->exit_status = 2;
+	pt->i = 0;
+	while (pt->tmps[pt->i] != NULL)
+	{
+		del_temp(pt->tmps[pt->i], tools->en);
+		pt->i++;
+	}
+	free_args(&pt->tmps);
+}
+
 void	run_pipes(t_maintools *tools)
 {
 	t_pipetools	pt;
 
 	pt.i = 0;
+	tools->pf = 1;
+	pt.tmps = NULL;
 	pt.prev_fd = -1;
 	tools->cmds = parse_pipe(tools->str);
 	free(tools->str);
@@ -289,18 +390,14 @@ void	run_pipes(t_maintools *tools)
 		tools->exit_status = 2;
 		return ;
 	}
-	if (check_token_err(tools->cmds) == 0)
+	if (check_token_err(tools->cmds, tools, &pt.tmps) == 0)
 	{
-		tools->exit_status = 2;
+		syn_err(tools, &pt);
 		return ;
 	}
+	her_pipe(tools, &pt.tmps);
 	pt.num_cmds = 0;
 	if (pipe_main(&pt, tools) == 0)
 		return ;
-	pt.i = 0;
-	wait_pipe(tools, &pt);
-	free(pt.pids);
-	if (pt.prev_fd != -1)
-		close(pt.prev_fd);
-	setup_signals();
+	pipes_helper(tools, &pt);
 }
