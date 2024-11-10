@@ -12,19 +12,6 @@
 
 #include "minishell.h"
 
-void	ft_strncpy(char *str, char *src, int n)
-{
-	int	i;
-
-	i = 0;
-	while (src[i] != '\0' && i < n)
-	{
-		str[i] = src[i];
-		i++;
-	}
-	str[i] = '\0';
-}
-
 int	q_bound(char *str, int i, int *in_quotes, char *quote_char)
 {
 	if (str[i] == '\'' || str[i] == '"')
@@ -85,28 +72,6 @@ char	*extract_arg(char *str, int *index)
 	ft_strncpy(arg, start, len);
 	arg[len] = '\0';
 	return (arg);
-}
-
-char	*ft_strdup(char *src)
-{
-	char	*str2;
-	int		slen;
-	int		i;
-
-	slen = ft_strlen(src);
-	i = 0;
-	str2 = (char *)malloc((slen + 1) * sizeof(char));
-	if (str2 == NULL)
-	{
-		return (NULL);
-	}
-	while (src[i] != '\0')
-	{
-		str2[i] = src[i];
-		i++;
-	}
-	str2[i] = '\0';
-	return (str2);
 }
 
 void	add_arg(char ***args, char **arg, int *k)

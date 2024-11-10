@@ -98,36 +98,3 @@ int	*red_run(char **str, t_tmptools *tmp, char **en, t_maintools *t)
 	free_red(red);
 	return (fd);
 }
-
-int	fix_after_red(int in, int out, int *fd)
-{
-	if (dup2(out, STDOUT_FILENO) == -1 || dup2(in, STDIN_FILENO) == -1)
-	{
-		perror("dup2");
-		return (-1);
-	}
-	if (fd[1] > 0)
-		close(fd[1]);
-	if (fd[0] > 0)
-		close(fd[0]);
-	return (1);
-}
-
-void	del_temp(char *tp, char **en)
-{
-	char	**args;
-	int		exit_status;
-
-	exit_status = 0;
-	if (tp != NULL)
-	{
-		args = malloc(3 * sizeof(char *));
-		if (args == NULL)
-			return ;
-		args[0] = ft_strdup("rm");
-		args[1] = ft_strdup(tp);
-		args[2] = NULL;
-		check_ve(args, en, 1, &exit_status);
-		free_args(&args);
-	}
-}

@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/19 17:03:44 by mjoundi           #+#    #+#             */
-/*   Updated: 2024/11/05 03:02:03 by marvin           ###   ########.fr       */
+/*   Updated: 2024/11/10 02:50:17 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,16 +32,6 @@ int	arg_no_q(char **args, int *i, int *sf, int *exit_status)
 		*sf = 1;
 	}
 	return (1);
-}
-
-void	sign_check(char **args, int *i, int *sf)
-{
-	if ((args[1][*i] == '+' || args[1][*i] == '-')
-		&& *sf == 0 && args[1][*i + 1] != '\0')
-	{
-		*sf = 1;
-		(*i)++;
-	}
 }
 
 //checking num arg with double quotations

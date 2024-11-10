@@ -82,18 +82,6 @@ void	sort_env(char **arr, int n)
 	}
 }
 
-void	print_exp(char **ex)
-{
-	int	i;
-
-	i = 0;
-	while (ex[i] != NULL)
-	{
-		printf("declare -x %s\n", ex[i]);
-		i++;
-	}
-}
-
 int	check_equal(char *str)
 {
 	int	i;

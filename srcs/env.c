@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/21 19:26:53 by mjoundi           #+#    #+#             */
-/*   Updated: 2024/11/05 02:49:15 by marvin           ###   ########.fr       */
+/*   Updated: 2024/11/10 03:03:02 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,4 +46,16 @@ char	**env_copy(char **env)
 	}
 	new[i] = NULL;
 	return (new);
+}
+
+void	print_exp(char **ex)
+{
+	int	i;
+
+	i = 0;
+	while (ex[i] != NULL)
+	{
+		printf("declare -x %s\n", ex[i]);
+		i++;
+	}
 }

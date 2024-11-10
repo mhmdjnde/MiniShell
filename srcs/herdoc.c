@@ -78,19 +78,6 @@ void	func_hd_l(int fd, char	**en, char *hd)
 	}
 }
 
-//generate the temp file name
-char	*tmp_file_gen(void)
-{
-	char	*str;
-
-	str = ft_strdup("temp");
-	while (access(str, F_OK) == 0)
-	{
-		str = add_ch(str, 'p');
-	}
-	return (str);
-}
-
 void	func_nl(int l, t_redtools **red, char **en, int *i)
 {
 	while ((*red)[*i].file != NULL)

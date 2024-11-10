@@ -12,42 +12,6 @@
 
 #include "minishell.h"
 
-int	get_pid(void)
-{
-	int	pid;
-
-	pid = fork();
-	if (pid < 0)
-	{
-		perror("fork failed");
-		exit(EXIT_FAILURE);
-	}
-	else if (pid > 0)
-	{
-		wait(NULL);
-		return (pid);
-	}
-	else
-	{
-		exit(0);
-	}
-	return (-1);
-}
-
-int	bs_check(char *str, char c)
-{
-	int	i;
-
-	i = 0;
-	while (str[i] != '\0')
-	{
-		if (str[i] == c)
-			return (1);
-		i++;
-	}
-	return (0);
-}
-
 void	bs_loop(char *str, char **wb, int *i, int *j)
 {
 	*i = 0;

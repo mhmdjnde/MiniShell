@@ -36,6 +36,38 @@ SRCS		=	srcs/count_args.c \
 				srcs/utils5.c\
 				srcs/pipe.c\
 				srcs/edit_her.c\
+				srcs/pwd.c \
+				srcs/oldpwd.c \
+				srcs/env_var.c \
+				srcs/var_ret.c \
+				srcs/exec_other_tools1.c \
+				srcs/exec_other_tools2.c \
+				srcs/exec_get_cmd.c \
+				srcs/utils6.c \
+				srcs/export1.c \
+				srcs/export_tools.c \
+				srcs/her_red_tools.c \
+				srcs/exit.c \
+				srcs/built_ins.c \
+				srcs/cd.c \
+				srcs/ini_tools.c \
+				srcs/events.c \
+				srcs/clean.c \
+				srcs/parse_cmd2.c \
+				srcs/ini_check_pipes.c \
+				srcs/pipe_cmds.c \
+				srcs/her_pipe.c \
+				srcs/red_check.c \
+				srcs/red_func.c \
+				srcs/red_clean.c \
+				srcs/red_parse.c \
+				srcs/pipe_func.c \
+				srcs/unset_tools.c \
+				srcs/unset_func.c \
+				srcs/utils7.c \
+				srcs/utils8.c \
+				srcs/var_name_check.c \
+				srcs/invalid_cwd.c
 
 OBJS		=	$(SRCS:.c=.o)
 
