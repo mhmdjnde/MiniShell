@@ -1,7 +1,0 @@
-{
-  "files.associations": {
-    "minishell.h": "c",
-    "fcntl.h": "c",
-    "stdio.h": "c"
-  }
-}
