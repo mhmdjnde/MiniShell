@@ -62,7 +62,7 @@ void	var_ret_helper1(char *str, int *i, int *double_quotes)
 	}
 	else if (*double_quotes == 1 && str[*i] == '"')
 	{
-		*double_quotes = 1;
+		*double_quotes = 0;
 		(*i)++;
 	}
 	if (str[*i] == '\'' && *double_quotes == 0)
@@ -73,18 +73,30 @@ void	var_ret_helper1(char *str, int *i, int *double_quotes)
 		if (str[*i] != '\0')
 			(*i)++;
 	}
+	else if (*double_quotes == 1)
+	{
+		while(str[*i] != '"' && str[*i] != '$' && str[*i] != '\0')
+			(*i)++;
+		if (str[*i] == '"')
+			(*i)++;
+	}
 }
 
 //parsing the variable name
 char	*var_ret_func(char *str, int *i, int *index)
 {
-	int		double_quotes;
+	static int		double_quotes;
 	char	*t;
 
-	double_quotes = 0;
+	// double_quotes = 0;
 	while (str[*i] != '\0')
 	{
 		var_ret_helper1(str, i, &double_quotes);
+		// if (double_quotes == 1)
+		// {
+		// 	while(str[*i] != '"' && str[*i] != '$' && str[*i] != '\0')
+		// 		(*i)++;
+		// }
 		if (str[*i] == '$')
 		{
 			if (str[*i + 1] == '$' || str[*i + 1] == '?')

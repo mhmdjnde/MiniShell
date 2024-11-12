@@ -27,8 +27,11 @@ void	envv(char **env, int *exit_status)
 
 void	echo(t_maintools *tools)
 {
+	tools->str = rm_dl(tools->str);
+	var_in_env(&tools->str, tools->en, &tools->exit_status);
+	tools->str = rm_bs(tools->str);
 	tools->strs = parse_args(tools->str, "echo");
-	echo_args_check(tools->strs, tools);
+	echo_args_check(tools->strs);
 	free_args(&tools->strs);
 	tools->exit_status = 0;
 }

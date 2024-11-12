@@ -42,26 +42,20 @@ void	skip_n(int *i, char **strs, int *nf)
 }
 
 //check the arguments of the echo command
-void	echo_args_check(char **strs, t_maintools *tools)
+void	echo_args_check(char **strs)
 {
 	int		i;
 	int		nf;
-	char	*t;
 
 	i = 1;
 	nf = 0;
 	skip_n(&i, strs, &nf);
 	while (strs[i] != NULL)
 	{
-		t = without_quotes_ret(strs[i], 0);
-		t = rm_dl(t);
-		var_in_env(&t, tools->en, &tools->exit_status);
-		t = rm_bs(t);
-		printf("%s", t);
+		without_quotes(strs[i], 0);
 		i++;
-		if (strs[i] != NULL && !empty(t))
+		if (strs[i] != NULL && !empty(strs[i]))
 			write(1, " ", 1);
-		free(t);
 	}
 	if (nf == 0)
 		printf("\n");

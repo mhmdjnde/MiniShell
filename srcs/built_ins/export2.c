@@ -47,7 +47,7 @@ void	deleted_pwd(t_maintools *tools, t_maintools *t_tools, int f)
 	int	t;
 
 	t = 0;
-	if (f != 1 && tools->cdf == 1)
+	if (f != 1 && tools->cdf == 1 && tools->of == 0)
 	{
 		t_tools->strs = malloc(3 * sizeof(char *));
 		t_tools->strs[0] = ft_strdup("jnde");
@@ -55,6 +55,8 @@ void	deleted_pwd(t_maintools *tools, t_maintools *t_tools, int f)
 		t_tools->strs[2] = NULL;
 		rm_exp(t_tools->strs, &tools->ex, &tools->en, &t);
 		add_exp(t_tools, &tools->ex, &tools->en, 1);
+		tools->of = 1;
+		free_args(&t_tools->strs);
 	}
 }
 
@@ -113,7 +115,7 @@ void	edit_oldpwd(char ***ex, char ***en, t_maintools *tools)
 	char		*oldpwd;
 	t_maintools	t_tools;
 
-	if (env_search("OLDPWD", *en) != NULL)
+	if (env_search("OLDPWD", *en) != NULL || tools->of == 1)
 	{
 		oldpwd = tools->cd;
 		if (oldpwd == NULL)

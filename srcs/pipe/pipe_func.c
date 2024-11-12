@@ -50,6 +50,7 @@ void	pipe_func(t_pipetools *pt, t_maintools *tools)
 	}
 	tools->str = tools->cmds[pt->i];
 	run_one_cmd(tools);
+	tools->str = NULL;
 }
 
 void	pipe_work(t_pipetools *pt, t_maintools *tools)

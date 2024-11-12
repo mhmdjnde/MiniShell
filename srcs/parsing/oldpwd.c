@@ -23,7 +23,10 @@ char	*get_oldpwd(char **env)
 	if (!empty(en_old))
 		return (en_old);
 	else
+	{
+		free(en_old);
 		return (NULL);
+	}
 }
 
 //this is the functionality of the '-' case in cd

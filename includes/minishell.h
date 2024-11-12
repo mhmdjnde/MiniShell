@@ -56,6 +56,7 @@ typedef struct s_maintools
 	int			exit_status;
 	char		**cmds;
 	int			cdf;
+	int			of;
 	int			pf;
 }	t_maintools;
 
@@ -157,7 +158,7 @@ void		exit_args_check(char **args, int *exit_status);
 void		free_args(char ***args);
 void		q_args(char **args);
 void		q_args2(char **args);
-void		echo_args_check(char **strs, t_maintools *tools);
+void		echo_args_check(char **strs);
 void		without_quotes(char *str, int flag);
 char		*without_quotes_ret(char *str, int flag);
 char		*rm_dl(char *str);

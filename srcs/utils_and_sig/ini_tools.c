@@ -24,7 +24,7 @@ int	check_before_run(t_maintools *t)
 	t->tmp.fd = red_run(&t->str, &t->tmp, t->en, t);
 	if (t->tmp.fd == NULL)
 	{
-		if (t->tmp.tmp)
+		if (t->tmp.tmp && t->pf != 1)
 			free(t->tmp.tmp);
 		free(t->str);
 		return (0);
@@ -42,6 +42,7 @@ void	ini_tools_1(t_maintools *tools, char **env)
 	tools->en = env_copy(env);
 	tools->ex = env_copy(env);
 	tools->cdf = 0;
+	tools->of = 0;
 	exp_q(tools->ex);
 	sort_env(tools->ex, args_len(tools->ex));
 	inc_shlvl(&tools->ex, &tools->en);
@@ -56,7 +57,9 @@ int	ini_loop(t_maintools *tools)
 	tools->tmp.fd = NULL;
 	tools->tmp.tmp = NULL;
 	tools->cdf = 0;
-	tools->str = readline("mjoundi > ");
+	tools->str = readline("\001" /* start non-printable */
+                         "\033[0;32mMini\033[0;31mHell> \033[0m" 
+                         "\002");
 	if (!tools->str)
 		return (-1);
 	if (empty(tools->str))

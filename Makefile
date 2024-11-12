@@ -108,4 +108,4 @@ re			:	fclean all
 
 v			:	$(NAME)
 				@echo $(MSG_VALGRIND)
-				@valgrind --leak-check=full ./$(NAME)
+				@valgrind -q --leak-check=full ./$(NAME)
